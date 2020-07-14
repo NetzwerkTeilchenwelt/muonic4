@@ -3,7 +3,7 @@
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
 Sill in very early development.
 
-# Prequisites
+## Prequisites
 
 ```bash
 pip install -r requirements.txt

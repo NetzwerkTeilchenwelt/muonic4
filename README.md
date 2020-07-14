@@ -16,8 +16,8 @@ pip install -r requirements.txt
 
 ## To do in Repo Setup
 
-- [ ] Auto-documentation via Sphinx
-- [ ] Webhook to readthedocs
+:white_check_mark: Auto-documentation via Sphinx
+:white_check_mark: Webhook to readthedocs
 - [ ] Auto pep-8 (or other code formatter)
 - [ ] Github Superlinter
 - [ ] Unittests

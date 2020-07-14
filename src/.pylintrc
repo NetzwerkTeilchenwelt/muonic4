@@ -7,8 +7,8 @@ persistent=yes
 jobs=4
 
 
-ignore=docu, tests, old
-
+ignore=muonic3, headless_muonic
+ignore-patterns=**/muonic3/**/*.py
 
 [MESSAGES CONTROL]
 # Only show warnings with the listed confidence levels. Leave empty to show

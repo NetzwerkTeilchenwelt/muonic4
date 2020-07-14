@@ -1,7 +1,7 @@
 # muonic4.0
 
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
-Sill in very earl development.
+Sill in very early development.
 
 
 ## To do in Repo Setup
@@ -15,3 +15,8 @@ Sill in very earl development.
 - [ ] Webhooks to pip?
 - [ ] Github CI Action or travis.ci ???
 - [ ] Code coverage
+
+## Todo for the Software
+- [ ] Port the headless version
+- [ ] Implement socket communication
+- [ ] Convert Muonic to Python3

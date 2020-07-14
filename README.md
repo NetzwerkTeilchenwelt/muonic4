@@ -1,4 +1,4 @@
-# muonic4.0
+# Muonic 4
 
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
 Sill in very early development.

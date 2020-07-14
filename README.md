@@ -5,6 +5,9 @@
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
 Sill in very early development.
 
+## Documentation
+More documentation can be found [here](https://muonic.readthedocs.io/en/latest/)
+
 ## Prequisites
 
 ```bash

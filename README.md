@@ -19,13 +19,13 @@ pip install -r requirements.txt
 
 - :white_check_mark: Auto-documentation via Sphinx
 - :white_check_mark: Webhook to readthedocs
-- [ ] Auto pep-8 (or other code formatter)
-- [ ] Github Superlinter
+- :white_check_mark: Auto pep-8 (or other code formatter)
 - [ ] Unittests
 - [ ] Webhooks to Dockerhub
 - [ ] Webhooks to pip?
 - [ ] Github CI Action or travis.ci ???
 - [ ] Code coverage
+- :small_red_triangle: Github Superlinter (disabled for now as it is way to harsh on existing code)
 
 ## Todo for the Software
 - [ ] Port the headless version

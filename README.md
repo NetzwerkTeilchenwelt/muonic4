@@ -1,5 +1,6 @@
 [![Documentation Status](https://readthedocs.org/projects/muonic/badge/?version=latest)](https://muonic.readthedocs.io/en/latest/?badge=latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![CI](https://github.com/NetzwerkTeilchenwelt/muonic4/workflows/CI/badge.svg)
 # Muonic 4
 
 Rewrite of the Netzwerkteilchenwelt Muonic Software.

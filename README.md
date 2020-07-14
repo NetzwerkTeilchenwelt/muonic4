@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/muonic/badge/?version=latest)](https://muonic.readthedocs.io/en/latest/?badge=latest)
+
 # Muonic 4
 
 Rewrite of the Netzwerkteilchenwelt Muonic Software.

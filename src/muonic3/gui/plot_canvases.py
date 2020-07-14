@@ -72,7 +72,6 @@ class BasePlotCanvas(FigureCanvas):
         self.fig.canvas.draw()
         self.setParent(parent)
 
-
     def update_plot(self, *args):
         """
         Instructions to update the plot. Needs to be implemented in subclasses.
@@ -150,8 +149,8 @@ class BaseHistogramCanvas(BasePlotCanvas):
         for hist_bin in enumerate(tmp_hist):
             if hist_bin[1]:
                 self.hist_patches[hist_bin[0]].set_height(
-                        self.hist_patches[hist_bin[0]].get_height() +
-                        hist_bin[1])
+                    self.hist_patches[hist_bin[0]].get_height() +
+                    hist_bin[1])
 
         # we want to get the maximum for the ylims
         # self.heights contains the bincontent!
@@ -174,7 +173,7 @@ class BaseHistogramCanvas(BasePlotCanvas):
         bincenters = (self.binning[1:]+self.binning[:-1])/2.
         for i, height in enumerate(self.heights):
             self.ax.errorbar(bincenters[i], height,
-                     yerr=np.sqrt(height), color='b')
+                             yerr=np.sqrt(height), color='b')
 
         # some beautification
         self.ax.grid()
@@ -210,12 +209,12 @@ class BaseHistogramCanvas(BasePlotCanvas):
         self.ax.lines = []
         self.ax.plot(bin_centers, bincontent, "b^", fitx, decay(p, fitx), "b-")
 
-        ## print fit function formula start
+        # print fit function formula start
         #x = bin_centers
         #y = bincontent
         #poly = pl.polyfit(x, y, 2)
 
-        #def poly2latex(poly, variable="x", width=2):
+        # def poly2latex(poly, variable="x", width=2):
         #  t = ["{0:0.{width}f}"]
         #  t.append(t[-1] + " {variable}")
         #  t.append(t[-1] + "^{1}")
@@ -253,9 +252,9 @@ class BaseHistogramCanvas(BasePlotCanvas):
         try:
             if chisquare / (nbins-len(p)) > 10000:
                 self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
-                                     " chisq/ndf=%.4g") %
-                            (p[2], perr_leastsq[2], self.dimension,
-                             chisquare / (nbins-len(p)))), loc=1)
+                                         " chisq/ndf=%.4g") %
+                                (p[2], perr_leastsq[2], self.dimension,
+                                 chisquare / (nbins-len(p)))), loc=1)
             self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
                                      " chisq/ndf=%4.2f") %
                             (p[2], perr_leastsq[2], self.dimension,
@@ -263,9 +262,9 @@ class BaseHistogramCanvas(BasePlotCanvas):
         except TypeError:
             if chisquare / (nbins-len(p)) > 10000:
                 self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
-                                     " chisq/ndf=%.4g") %
-                            (p[2], perr_leastsq[2], self.dimension,
-                             chisquare / (nbins-len(p)))), loc=1)
+                                         " chisq/ndf=%.4g") %
+                                (p[2], perr_leastsq[2], self.dimension,
+                                 chisquare / (nbins-len(p)))), loc=1)
             self.logger.warn("Covariance Matrix is 'None', could " +
                              "not calculate fit error!")
             self.ax.legend(("Data", ("Fit: (%4.2f) %s \n " +
@@ -284,6 +283,7 @@ class PulseCanvas(BasePlotCanvas):
     :param logger: logger object
     :type logger: logging.Logger
     """
+
     def __init__(self, parent, logger):
         BasePlotCanvas.__init__(self, parent, logger, ymin=0, ymax=1.2,
                                 xmin=0, xmax=40, xlabel="Time (ns)",
@@ -495,11 +495,12 @@ class LifetimeCanvas(BaseHistogramCanvas):
     :param binning: the binning to use for this canvas
     :type binning: list or tuple or numpy.ndarray
     """
+
     def __init__(self, parent, logger, binning=(0, 10, 21)):
         BaseHistogramCanvas.__init__(
-                self, parent, logger,
-                np.linspace(binning[0], binning[1], binning[2]),
-                xlabel="Time between Pulses ($\mu$s)", ylabel="Events")
+            self, parent, logger,
+            np.linspace(binning[0], binning[1], binning[2]),
+            xlabel="Time between Pulses ($\mu$s)", ylabel="Events")
 
 
 class VelocityCanvas(BaseHistogramCanvas):
@@ -512,12 +513,13 @@ class VelocityCanvas(BaseHistogramCanvas):
     :param binning: the binning to use for this canvas
     :type binning: list or tuple or numpy.ndarray
     """
+
     def __init__(self, parent, logger, binning=(0., 30, 25)):
         BaseHistogramCanvas.__init__(
-                self, parent, logger,
-                np.linspace(binning[0], binning[1], binning[2]),
-                xmin=0., xmax=30, ymin=0, ymax=2,
-                ylabel="Events", xlabel="Flight Time (ns)")
+            self, parent, logger,
+            np.linspace(binning[0], binning[1], binning[2]),
+            xmin=0., xmax=30, ymin=0, ymax=2,
+            ylabel="Events", xlabel="Flight Time (ns)")
         self.dimension = r"$ns$"
 
 
@@ -531,11 +533,12 @@ class PulseWidthCanvas(BaseHistogramCanvas):
     :param hist_color: the color of the histogram
     :type hist_color: str
     """
+
     def __init__(self, parent, logger, hist_color="r", title=None):
         BaseHistogramCanvas.__init__(
-                self, parent, logger, np.linspace(0., 100, 30),
-                hist_color=hist_color, xmin=0., xmax=100, ymin=0, ymax=2,
-                ylabel="Events", xlabel="Pulse Width (ns)")
+            self, parent, logger, np.linspace(0., 100, 30),
+            hist_color=hist_color, xmin=0., xmax=100, ymin=0, ymax=2,
+            ylabel="Events", xlabel="Pulse Width (ns)")
         self.ax_title = title if title is not None else "Pulse Widths"
         self.ax.set_title(self.ax_title)
         self.ax.figure.tight_layout()

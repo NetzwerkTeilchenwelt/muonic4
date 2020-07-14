@@ -21,10 +21,10 @@ def fit(bincontent=None, binning=(0, 10, 21), fitrange=None):
     """
     def decay(p, x):
         return p[0] * numpy.exp(-x / p[1]) + p[2]
-    
+
     def error(p, x, y):
         return decay(p, x) - y
-    
+
     if bincontent is None:
         nbins = 10
         xmin = 1.0
@@ -40,33 +40,33 @@ def fit(bincontent=None, binning=(0, 10, 21), fitrange=None):
         # nbins = optimalbins.optbinsize(times, 1, 30)
 
         print("Nbins:", nbins)
-        
+
         bin_edges = numpy.linspace(binning[0], binning[1], binning[2])
         bin_centers = bin_edges[:-1] + 0.5 * (bin_edges[1] - bin_edges[0])
-        
+
         hist, edges = numpy.histogram(times, bin_edges)
-        
+
         # hist = hist[:-1]
         p0 = numpy.array([200, 2.0, 5])
-        
+
         output = optimize.leastsq(error, p0, args=(bin_centers, hist),
                                   full_output=1)
         p = output[0]
         covar = output[1]
-        
+
         print("Fit parameters:", p)
         print("Covariance matrix:", covar)
-        
-        chisquare=0.
-        deviations=error(p, bin_centers, hist)
+
+        chisquare = 0.
+        deviations = error(p, bin_centers, hist)
 
         for i, d in enumerate(deviations):
             chisquare += d * d / decay(p, bin_centers[i])
-        
+
         params = {"legend.fontsize": 13}
 
         pylab.rcParams.update(params)
-        
+
         fitx = numpy.linspace(xmin, xmax, 100)
 
         pylab.plot(bin_centers, hist, "b^", fitx, decay(p, fitx), "b-")
@@ -76,7 +76,7 @@ def fit(bincontent=None, binning=(0, 10, 21), fitrange=None):
         # pylab.legend(("Data","Fit: (%4.2f +- %4.2f) microsec," +
         #               "chisq / ndf=%4.2f" % (p[1], numpy.sqrt(covar[1][1]),
         #                                      chisquare / (nbins - len(p)))))
-        pylab.legend(("Data","Fit: (%4.2f) microsec," +
+        pylab.legend(("Data", "Fit: (%4.2f) microsec," +
                       "chisq/ndf=%4.2f" % p[1], chisquare / (nbins - len(p))))
 
         pylab.grid()
@@ -87,7 +87,7 @@ def fit(bincontent=None, binning=(0, 10, 21), fitrange=None):
         if len(bincontent) == 0:
             print("WARNING: Empty bins.")
             return None
-    
+
         bins = numpy.linspace(binning[0], binning[1], binning[2])
         bin_centers = bins[:-1] + 0.5 * (bins[1] - bins[0])
         if fitrange is not None:
@@ -109,7 +109,7 @@ def fit(bincontent=None, binning=(0, 10, 21), fitrange=None):
                 bin_centers = bin_centers_
                 bincontent = bincontent[bin_mask]
 
-        # we cut the leading edge of the distribution away for the fit 
+        # we cut the leading edge of the distribution away for the fit
         glob_max = max(bincontent)
         cut = 0
         for i in enumerate(bincontent):
@@ -143,20 +143,20 @@ def fit(bincontent=None, binning=(0, 10, 21), fitrange=None):
 
         p = output[0]
         covar = output[1]
-        
+
         print("Fit parameters:", p)
         print("Covariance matrix:", covar)
-        
+
         chisquare = 0.
         deviations = error(p, cut_bincenters, cut_bincontent)
 
         for i, d in enumerate(deviations):
             chisquare += d * d / decay(p, cut_bincenters[i])
-        
+
         params = {"legend.fontsize": 13}
 
         pylab.rcParams.update(params)
-        
+
         # nbins = 84
         nbins = len(bins)
         xmin = cut_bincenters[0]
@@ -168,7 +168,7 @@ def fit(bincontent=None, binning=(0, 10, 21), fitrange=None):
         #         decay, p, covar, chisquare, nbins)
         return (cut_bincenters, cut_bincontent, fitx,
                 decay, p, covar, chisquare, nbins)
-     
+
 
 def gaussian_fit(bincontent, binning=(0, 2, 10), fitrange=None):
     """
@@ -182,14 +182,14 @@ def gaussian_fit(bincontent, binning=(0, 2, 10), fitrange=None):
     def gauss(p, x):
         return (p[0] * (1 / (p[1] * numpy.sqrt(2 * numpy.pi))) *
                 numpy.exp(-0.5 * (((x - p[2]) / p[1]) ** 2)))
-    
+
     def error(p, x, y):
         return gauss(p, x) - y
-    
+
     if len(bincontent) == 0:
         print("WARNING: Empty bins.")
         return None
-    
+
     # this is then used for the mudecay window in muonic.
     # we have to adjust the bins to the values of the used histogram.
 
@@ -254,20 +254,20 @@ def gaussian_fit(bincontent, binning=(0, 2, 10), fitrange=None):
 
     p = output[0]
     covar = output[1]
-    
+
     print("Fit parameters:", p)
     print("Covariance matrix:", covar)
-    
+
     chisquare = 0.
     deviations = error(p, cut_bincenters, cut_bincontent)
 
     for i, d in enumerate(deviations):
-        chisquare += d*d/gauss(p,cut_bincenters[i])
-    
+        chisquare += d*d/gauss(p, cut_bincenters[i])
+
     params = {"legend.fontsize": 13}
 
     pylab.rcParams.update(params)
-    
+
     # nbins = 84
     nbins = len(bins)
     xmin = cut_bincenters[0]
@@ -278,7 +278,7 @@ def gaussian_fit(bincontent, binning=(0, 2, 10), fitrange=None):
     # return (bin_centers, bincontent, fitx, decay, p, covar, chisquare, nbins)
     return (cut_bincenters, cut_bincontent, fitx,
             gauss, p, covar, chisquare, nbins)
-     
+
 
 if __name__ == '__main__':
     fit()

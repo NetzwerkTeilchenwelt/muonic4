@@ -31,7 +31,7 @@ class DAQSimulation(object):
     """
 
     DEFAULT_SIMULATION_FILE = path.abspath(path.join(
-            path.dirname(__file__), "simdaq.txt"))
+        path.dirname(__file__), "simdaq.txt"))
     LINES_TO_PUSH = 10
 
     def __init__(self, logger, simulation_file=None):
@@ -208,7 +208,7 @@ class DAQSimulationConnection(BaseDAQSimulationConnection):
                 while True:
                     try:
                         self.serial_port.write(str(self.in_queue.get(
-                                timeout=0.01)) + "\r")
+                            timeout=0.01)) + "\r")
                     except queue.Empty:
                         pass
 
@@ -258,10 +258,11 @@ class DAQSimulationServer(BaseDAQSimulationConnection):
         while self.running:
             msg = self.socket.recv_string()
             self.serial_port.write(str(msg) + "\r")
-            
+
             while self.serial_port.in_waiting():
                 self.socket.send_string(self.serial_port.readline().strip())
             time.sleep(0.02)
+
 
 if __name__ == "__main__":
     logger = logging.getLogger()

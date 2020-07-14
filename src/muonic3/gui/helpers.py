@@ -14,11 +14,12 @@ class HistoryAwareLineEdit(QtGui.QLineEdit):
 
     :param args: widget args
     """
+
     def __init__(self, *args):
         QtGui.QLineEdit.__init__(self, *args)
         self.history = []
         self.hist_pointer = 0
-        
+
     def event(self, event):
         """
         Handles keypress events.
@@ -65,12 +66,12 @@ def set_large_plot_style():
     :returns: None
     """
     font_size = 20
-    
+
     # workaround for ancient versions of matplotlib at DESY
     from matplotlib import __version__ as mplversion
     from distutils.version import LooseVersion
     if LooseVersion(mplversion) > LooseVersion("1.3.0"):
-        ff = "TeX Gyre Pagella" 
+        ff = "TeX Gyre Pagella"
     else:
         ff = 'serif'
 

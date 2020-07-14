@@ -12,7 +12,7 @@ AUTHORS = [
 ]
 
 DOC_PATH = path.abspath(path.join(
-        path.dirname(__file__), pardir, 'docs', 'html'))
+    path.dirname(__file__), pardir, 'docs', 'html'))
 
 DATA_PATH = path.join(getenv('HOME'), 'muonic_data')
 

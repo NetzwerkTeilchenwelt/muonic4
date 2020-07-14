@@ -58,7 +58,7 @@ class BaseDAQConnection(with_metaclass(abc.ABCMeta, object)):
 
         def get_dev_path(script):
             tty = subprocess.Popen(
-                    [script], stdout=subprocess.PIPE).communicate()[0]
+                [script], stdout=subprocess.PIPE).communicate()[0]
             return "/dev/%s" % tty.rstrip('\n')
 
         while not connected:
@@ -67,8 +67,8 @@ class BaseDAQConnection(with_metaclass(abc.ABCMeta, object)):
             except OSError:
                 # try using package script ../../bin/which_tty_daq
                 which_tty_daq = os.path.abspath(
-                        os.path.join(os.path.dirname(__file__), os.pardir,
-                                     os.pardir, 'bin', 'which_tty_daq'))
+                    os.path.join(os.path.dirname(__file__), os.pardir,
+                                 os.pardir, 'bin', 'which_tty_daq'))
 
                 if not os.path.exists(which_tty_daq):
                     raise OSError("Can not find binary which_tty_daq")
@@ -136,7 +136,7 @@ class DAQConnection(BaseDAQConnection):
         """
         min_sleep_time = 0.01  # seconds
         max_sleep_time = 0.2  # seconds
-        sleep_time = min_sleep_time  #seconds
+        sleep_time = min_sleep_time  # seconds
 
         while self.running:
             try:
@@ -176,7 +176,7 @@ class DAQConnection(BaseDAQConnection):
                 while True:
                     try:
                         self.serial_port.write(str(self.in_queue.get(
-                                timeout=0.01)) + "\r")
+                            timeout=0.01)) + "\r")
                     except (queue.Empty, serial.SerialTimeoutException):
                         pass
             sleep(0.1)

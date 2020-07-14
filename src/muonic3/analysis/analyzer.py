@@ -12,7 +12,7 @@ from muonic.util import WrappedFile
 
 __all__ = ["PulseExtractor", "DecayTriggerThorough", "VelocityTrigger"]
 
-# for the pulses 
+# for the pulses
 # 8 bits give a hex number
 # but only the first 5 bits are used for the pulses time,
 # the fifth bit flags if the pulse is considered valid
@@ -131,7 +131,7 @@ class PulseExtractor:
                 self.logger.info(("The pulse extraction measurement was " +
                                   "active for %f hours") %
                                  get_hours_from_duration(
-                                         self.measurement_duration))
+                    self.measurement_duration))
                 rename_muonic_file(self.measurement_duration,
                                    self.pulse_file.get_filename())
             except (OSError, IOError):
@@ -149,7 +149,7 @@ class PulseExtractor:
         :type counter_diff: int
         :return: None
         """
-        
+
         rising_edges = {
             "ch0": int(line[1], 16), "ch1": int(line[3], 16),
             "ch2": int(line[5], 16), "ch3": int(line[7], 16)
@@ -189,9 +189,9 @@ class PulseExtractor:
                         fe = MAX_TRIGGER_WINDOW
                 except IndexError:
                     fe = MAX_TRIGGER_WINDOW
-                    
+
                 pulses[ch].append((re, fe))
-                
+
             pulses[ch] = sorted(pulses[ch])
 
             # self.pulses[ch] = [(re,fe) for re,fe in self.last_re[ch],
@@ -258,7 +258,7 @@ class PulseExtractor:
             # check for one_pps counter rollover
             if one_pps < self.last_one_pps:
                 one_pps += int(0xFFFFFFFF)
-            
+
             # calculate the frequency every x one_pps
             if not self.passed_one_pps % 5:
                 self.calculated_frequency = ((one_pps - self.last_one_pps_poll) /
@@ -292,7 +292,7 @@ class PulseExtractor:
 
         if int(line[1], 16) & BIT7:  # a trigger flag!
             self.ini = False
-             
+
             # a new trigger! we have to evaluate the
             # last one and get the new pulses
             self.last_re = self.re
@@ -315,9 +315,9 @@ class PulseExtractor:
             # calculate edges of the new pulses
             self._calculate_edges(line)
             self.last_trigger_count = trigger_count
-        
+
             return extracted_pulses
-        else:    
+        else:
             # we do have a previous trigger and are now
             # adding more pulses to the event
             if self.ini:
@@ -328,7 +328,7 @@ class PulseExtractor:
                 # FIXME: is this correct?
                 if counter_diff > int(0xffffffff):
                     counter_diff -= int(0xffffffff)
-        
+
                 counter_diff /= self.calculated_frequency
 
                 self._calculate_edges(line, counter_diff=counter_diff * 1e9)
@@ -348,7 +348,7 @@ class VelocityTrigger:
     def __init__(self, logger):
         self.logger = logger
         self.logger.info("Velocity trigger initialized")
-        
+
     def trigger(self, pulses, upper_channel=1, lower_channel=2):
         """
         Time difference will be calculated t(upper_channel) - t(lower_channel)
@@ -364,7 +364,7 @@ class VelocityTrigger:
         # remember that index 0 is the trigger time
         upper_pulses = len(pulses[upper_channel])
         lower_pulses = len(pulses[lower_channel])
-        
+
         if upper_pulses and lower_pulses:
             if (len(pulses[upper_channel][0]) > 1 and
                     len(pulses[lower_channel][0]) > 1):
@@ -428,7 +428,7 @@ class DecayTriggerThorough:
         :param max_double_pulse_width: maximum double pulse width
         :type max_double_pulse_width: int
         :returns: int or None
-        """ 
+        """
 
         ttp = trigger_pulses
         pulses1 = len(ttp[single_channel])  # single pulse
@@ -441,7 +441,7 @@ class DecayTriggerThorough:
         if (pulses1 + pulses2 < 2) or pulses3:
             # reject event if it has to few pulses or veto pulses
             self.logger.debug(("Rejecting decay with single pulses %s, " +
-                              "double pulses %s and veto pulses %s") %
+                               "double pulses %s and veto pulses %s") %
                               (repr(pulses1), repr(pulses2), repr(pulses3)))
             return None
 
@@ -499,13 +499,13 @@ class DecayTriggerThorough:
             return decay_time
 
         self.logger.debug(("Rejecting decay with single pulses %s, " +
-                          "double pulses %s and veto pulses %s") %
+                           "double pulses %s and veto pulses %s") %
                           (repr(pulses1), repr(pulses2), repr(pulses3)))
         return None
 
 
 if __name__ == '__main__':
-    import sys 
+    import sys
 
     data = open(sys.argv[1])
     extractor = PulseExtractor()
@@ -517,4 +517,4 @@ if __name__ == '__main__':
         try:
             print(extractor.extract(line))
         except (ValueError, IndexError):
-            pass 
+            pass

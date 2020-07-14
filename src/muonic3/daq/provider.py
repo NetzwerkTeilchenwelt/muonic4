@@ -106,7 +106,7 @@ class DAQProvider(BaseDAQProvider):
         else:
             self.daq = DAQConnection(self.in_queue, self.out_queue,
                                      self.logger)
-        
+
         # Set up the thread to do asynchronous I/O. More can be made if
         # necessary. Set daemon flag so that the threads finish when the main
         # app finishes
@@ -119,7 +119,7 @@ class DAQProvider(BaseDAQProvider):
                                            name="pWRITER")
             self.write_thread.daemon = True
             self.write_thread.start()
-        
+
     def get(self, *args):
         """
         Get something from the DAQ.
@@ -176,7 +176,7 @@ class DAQClient(BaseDAQProvider):
     :type logger: logging.Logger
     :raises: DAQMissingDependencyError
     """
-    
+
     def __init__(self, address='127.0.0.1', port=5556, logger=None):
         BaseDAQProvider.__init__(self, logger)
         try:
@@ -200,7 +200,7 @@ class DAQClient(BaseDAQProvider):
             line = self.socket.recv_string()
         except Exception:
             raise DAQIOError("Socket error")
-        
+
         return self._validate_line(line)
 
     def put(self, *args):

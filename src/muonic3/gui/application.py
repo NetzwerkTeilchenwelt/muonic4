@@ -36,6 +36,7 @@ class Application(QtGui.QMainWindow):
     :param opts: command line options
     :type opts: Namespace
     """
+
     def __init__(self, daq, logger, opts):
         QtGui.QMainWindow.__init__(self)
 
@@ -48,7 +49,7 @@ class Application(QtGui.QMainWindow):
         QtCore.QLocale.setDefault(QtCore.QLocale("en_us"))
         self.setWindowTitle("muonic")
         self.setWindowIcon(QtGui.QIcon(path.join(path.dirname(__file__),
-                                                   "muonic.xpm")))
+                                                 "muonic.xpm")))
 
         # params
         self.daq = daq
@@ -212,7 +213,7 @@ class Application(QtGui.QMainWindow):
         """
         desktop = QtGui.QDesktopWidget()
         screen_size = QtCore.QRectF(desktop.screenGeometry(
-                desktop.primaryScreen()))
+            desktop.primaryScreen()))
         screen_x = screen_size.x() + screen_size.width()
         screen_y = screen_size.y() + screen_size.height()
 
@@ -236,7 +237,8 @@ class Application(QtGui.QMainWindow):
         file_menu = menu_bar.addMenu('&File')
 
         muonic_data_action = QtGui.QAction('Open Data Folder', self)
-        muonic_data_action.setStatusTip('Open the folder with the data files written by muonic.')
+        muonic_data_action.setStatusTip(
+            'Open the folder with the data files written by muonic.')
         muonic_data_action.setShortcut('Ctrl+O')
         self.connect(muonic_data_action, QtCore.SIGNAL('triggered()'),
                      self.open_muonic_data)
@@ -244,7 +246,7 @@ class Application(QtGui.QMainWindow):
         file_menu.addAction(muonic_data_action)
 
         exit_action = QtGui.QAction(QtGui.QIcon(
-                "/usr/share/icons/gnome/24x24/actions/exit.png"), 'Exit', self)
+            "/usr/share/icons/gnome/24x24/actions/exit.png"), 'Exit', self)
         exit_action.setShortcut('Ctrl+Q')
         exit_action.setStatusTip('Exit application')
         self.connect(exit_action, QtCore.SIGNAL('triggered()'),
@@ -320,7 +322,7 @@ class Application(QtGui.QMainWindow):
             return
         if self.have_widget(name):
             raise WidgetWithNameExistsError(
-                    "widget with name '%s' already exists" % name)
+                "widget with name '%s' already exists" % name)
         else:
             if not isinstance(widget, QtGui.QWidget):
                 raise TypeError("widget has to be a subclass 'QtGui.QWidget'")
@@ -395,7 +397,7 @@ class Application(QtGui.QMainWindow):
                                  (cmd.split()[1], cmd.split()[2]))
 
         self.daq.put('TL')
-  
+
     def open_muonic_data(self):
         """
         Opens the folder with the data files. Usually in $HOME/muonic_data
@@ -433,9 +435,9 @@ class Application(QtGui.QMainWindow):
             # get and update channel and coincidence config
             for i in range(4):
                 channel_config[i] = dialog.get_widget_value(
-                        "channel_checkbox_%d" % i)
+                    "channel_checkbox_%d" % i)
                 coincidence_config[i] = dialog.get_widget_value(
-                        "coincidence_checkbox_%d" % i)
+                    "coincidence_checkbox_%d" % i)
 
                 update_setting("active_ch%d" % i, channel_config[i])
                 update_setting("coincidence%d" % i, coincidence_config[i])
@@ -447,7 +449,7 @@ class Application(QtGui.QMainWindow):
             # get and update veto channel config
             for i in range(3):
                 veto_config[i] = dialog.get_widget_value(
-                        "veto_checkbox_%d" % i)
+                    "veto_checkbox_%d" % i)
 
                 update_setting("veto_ch%d" % i, veto_config[i])
 
@@ -476,12 +478,12 @@ class Application(QtGui.QMainWindow):
 
             if not coincidence_set:
                 tmp_msg += "00"
-    
+
             # now calculate the correct expression for the first
             # four bits
             self.logger.debug("The first four bits are set to %s" % tmp_msg)
             msg = "WC 00 %s" % hex(int(''.join(tmp_msg), 2))[-1].capitalize()
-    
+
             channel_set = False
             enable = ['0', '0', '0', '0']
 
@@ -489,7 +491,7 @@ class Application(QtGui.QMainWindow):
                 if active:
                     enable[i] = '1'
                     channel_set = True
-            
+
             if channel_set:
                 msg += hex(int(''.join(enable), 2))[-1].capitalize()
             else:
@@ -510,7 +512,7 @@ class Application(QtGui.QMainWindow):
                                   (name, coincidence_config[i]))
 
         self.daq.put("DC")
-           
+
     def advanced_menu(self):
         """
         Show a config dialog for advanced options, ie. gate width,
@@ -577,7 +579,7 @@ class Application(QtGui.QMainWindow):
         :returns: None
         """
         HelpDialog().exec_()
-        
+
     def about_menu(self):
         """
         Show a link to the online documentation.
@@ -638,7 +640,7 @@ class Application(QtGui.QMainWindow):
             return True
         else:
             return False
-        
+
     def get_channels_from_msg(self, msg):
         """
         Explicitly scan message for channel information.
@@ -648,7 +650,7 @@ class Application(QtGui.QMainWindow):
         DC gives:
 
         DC C0=23 C1=71 C2=0A C3=00
-        
+
         Which has the meaning:
 
         MM - 00 -> 8bits for channel enable/disable, coincidence and veto
@@ -763,14 +765,14 @@ class Application(QtGui.QMainWindow):
 
             # Check contents of message and do what it says
             self.get_widget("daq").update()
-            
+
             gps_widget = self.get_widget("gps")
 
             # try to extract GPS information if widget is active and enabled
             if gps_widget.active() and gps_widget.isEnabled():
                 gps_widget.update()
                 continue
-                
+
             status_widget = self.get_widget("status")
 
             # update status widget if active

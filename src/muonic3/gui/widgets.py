@@ -164,7 +164,7 @@ class RateWidget(BaseWidget):
         # 4:    trigger
         self.previous_scalars = self.new_scalar_buffer()
         self.scalar_buffer = self.new_scalar_buffer()
-        
+
         # maximum and minimum seen rate across channels and trigger
         self.max_rate = 0
         self.min_rate = 0
@@ -190,8 +190,8 @@ class RateWidget(BaseWidget):
         self.table.setColumnWidth(0, 85)
         self.table.setColumnWidth(1, 60)
         self.table.setHorizontalHeaderLabels(["rate [1/s]", "counts"])
-        self.table.setVerticalHeaderLabels(["channel 0", "channel 1", 
-                                            "channel 2", "channel 3", 
+        self.table.setVerticalHeaderLabels(["channel 0", "channel 1",
+                                            "channel 2", "channel 3",
                                             "trigger"])
         self.table.horizontalHeader().setStretchLastSection(True)
 
@@ -374,12 +374,12 @@ class RateWidget(BaseWidget):
                 utcdt = datetime.datetime.utcfromtimestamp(self.query_time)
                 self.data_file.write(
                     "%s %f %f %f %f %f %f %f %f %f %f %f \n" %
-                        (utcdt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-                         self.rates[0], self.rates[1], self.rates[2],
-                         self.rates[3], self.rates[4],
-                         scalar_diffs[0], scalar_diffs[1],
-                         scalar_diffs[2], scalar_diffs[3], scalar_diffs[4],
-                         self.rates[5]))
+                    (utcdt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                     self.rates[0], self.rates[1], self.rates[2],
+                     self.rates[3], self.rates[4],
+                     scalar_diffs[0], scalar_diffs[1],
+                     scalar_diffs[2], scalar_diffs[3], scalar_diffs[4],
+                     self.rates[5]))
 
                 self.logger.debug("Rate plot data was written to %s" %
                                   repr(self.data_file))
@@ -432,10 +432,10 @@ class RateWidget(BaseWidget):
         if enabled:
             if not disable_only:
                 self.rate_fields[channel].setText(
-                        "%.3f" % (self.scalar_buffer[channel] /
-                                  self.time_window))
+                    "%.3f" % (self.scalar_buffer[channel] /
+                              self.time_window))
                 self.scalar_fields[channel].setText(
-                        "%d" % (self.scalar_buffer[channel]))
+                    "%d" % (self.scalar_buffer[channel]))
         else:
             self.rate_fields[channel].setText("off")
             self.scalar_fields[channel].setText("off")
@@ -492,7 +492,7 @@ class RateWidget(BaseWidget):
         if self.first_run:
             self.data_file.write("year month day hour minutes second milliseconds" +
                                  " | R0 | R1 | R2 | R3 | R trigger | " +
-                           " chan0 | chan1 | chan2 | chan3 | trigger | Delta_time\n")
+                                 " chan0 | chan1 | chan2 | chan3 | trigger | Delta_time\n")
             self.first_run = False
 
         # determine type of measurement
@@ -575,7 +575,7 @@ class RateWidget(BaseWidget):
                 self.logger.info(("The rate measurement was active " +
                                   "for %f hours") %
                                  get_hours_from_duration(
-                                         self.measurement_duration))
+                    self.measurement_duration))
                 rename_muonic_file(self.measurement_duration,
                                    self.data_file.get_filename())
             except (OSError, IOError):
@@ -592,11 +592,12 @@ class PulseAnalyzerWidget(BaseWidget):
     :type pulse_extractor: muonic.analysis.analyzer.PulseExtractor
     :param parent: parent widget
     """
+
     def __init__(self, logger, pulse_extractor, parent=None):
         BaseWidget.__init__(self, logger, parent)
 
         self.pulses = None
-        self.pulse_widths = {i : [] for i in range(4)}
+        self.pulse_widths = {i: [] for i in range(4)}
         self.pulse_extractor = pulse_extractor
 
         # setup layout
@@ -613,15 +614,16 @@ class PulseAnalyzerWidget(BaseWidget):
         self.pulse_width_canvases = []
         self.pulse_width_toolbars = []
         for i in range(4):
-            self.pulse_width_canvases.append((PulseWidthCanvas(self, logger, 
-                                                    title="Pulse Widths Ch %d"%i)))
+            self.pulse_width_canvases.append((PulseWidthCanvas(self, logger,
+                                                               title="Pulse Widths Ch %d" % i)))
 
-            self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[-1], self))
+            self.pulse_width_toolbars.append(
+                NavigationToolbar(self.pulse_width_canvases[-1], self))
 
         layout.addWidget(self.checkbox, 0, 0, 1, 2)
         for i in range(4):
             cx = i/2 * 2 + 1
-            cy = i%2
+            cy = i % 2
 
             layout.addWidget(self.pulse_width_canvases[i], cx, cy)
             layout.addWidget(self.pulse_width_toolbars[i], cx+1, cy)
@@ -646,8 +648,7 @@ class PulseAnalyzerWidget(BaseWidget):
         # pulse_widths changed because falling edge can be None.
         # pulse_widths = [fe - le for chan in pulses[1:] for le,fe in chan]
 
-
-        for i,channel in enumerate(self.pulses[1:]):
+        for i, channel in enumerate(self.pulses[1:]):
             pulse_widths = self.pulse_widths.get(i, [])
             for le, fe in channel:
                 if fe is not None:
@@ -655,7 +656,7 @@ class PulseAnalyzerWidget(BaseWidget):
                 else:
                     pulse_widths.append(0.)
             self.pulse_widths[i] = pulse_widths
-        
+
     def update(self):
         """
         Update plot canvases
@@ -665,10 +666,10 @@ class PulseAnalyzerWidget(BaseWidget):
         if not self.active():
             return
 
-        #self.pulse_canvas.update_plot(self.pulses)
-        for i,pwc in enumerate(self.pulse_width_canvases):
+        # self.pulse_canvas.update_plot(self.pulses)
+        for i, pwc in enumerate(self.pulse_width_canvases):
             pwc.update_plot(self.pulse_widths[i])
-        self.pulse_widths = {i : [] for i in range(4)}
+        self.pulse_widths = {i: [] for i in range(4)}
 
     def on_checkbox_clicked(self):
         """
@@ -768,7 +769,7 @@ class StatusWidget(BaseWidget):
             self.daq_widgets['thresholds'].append(QtGui.QLineEdit(self))
             self.daq_widgets['thresholds'][i].setReadOnly(True)
             self.daq_widgets['thresholds'][i].setText(
-                    self.daq_stats['thresholds'][i])
+                self.daq_stats['thresholds'][i])
             self.daq_widgets['thresholds'][i].setDisabled(True)
 
             self.daq_widgets['active_channels'].append(QtGui.QLineEdit(self))
@@ -842,7 +843,7 @@ class StatusWidget(BaseWidget):
 
         :returns: None
         """
-        self.refresh_button.setDisabled(True)        
+        self.refresh_button.setDisabled(True)
         self.logger.debug("Refreshing status information.")
 
         # request status information from DAQ card
@@ -931,12 +932,12 @@ class StatusWidget(BaseWidget):
         # update daq widgets
         for i in range(4):
             self.daq_widgets['thresholds'][i].setText(
-                    self.daq_stats['thresholds'][i])
+                self.daq_stats['thresholds'][i])
             self.daq_widgets['thresholds'][i].setDisabled(False)
             self.daq_widgets['thresholds'][i].setEnabled(True)
 
             self.daq_widgets['active_channels'][i].setEnabled(
-                    self.daq_stats['active_channels'][i])
+                self.daq_stats['active_channels'][i])
 
         for key in ['coincidences', 'coincidence_time', 'veto', 'decay_veto']:
             self.daq_widgets[key].setText(
@@ -966,6 +967,7 @@ class VelocityWidget(BaseWidget):
     :type pulse_extractor: muonic.analysis.analyzer.PulseExtractor
     :param parent: parent widget
     """
+
     def __init__(self, logger, filename, pulse_extractor, parent=None):
         BaseWidget.__init__(self, logger, parent)
 
@@ -996,8 +998,8 @@ class VelocityWidget(BaseWidget):
 
         # we want the plot canvas to fill as much space as possible
         self.plot_canvas.setSizePolicy(
-                QtGui.QSizePolicy.Expanding,
-                QtGui.QSizePolicy.Expanding)
+            QtGui.QSizePolicy.Expanding,
+            QtGui.QSizePolicy.Expanding)
 
         # velocity trigger
         self.trigger = VelocityTrigger(logger)
@@ -1047,8 +1049,8 @@ class VelocityWidget(BaseWidget):
         """
         self.logger.debug("Using fit range of %s" % repr(self.fit_range))
         fit_results = gaussian_fit(
-                bincontent=np.asarray(self.plot_canvas.heights),
-                binning=self.binning, fitrange=self.fit_range)
+            bincontent=np.asarray(self.plot_canvas.heights),
+            binning=self.binning, fitrange=self.fit_range)
 
         if fit_results is not None:
             self.plot_canvas.show_fit(*fit_results)
@@ -1060,8 +1062,8 @@ class VelocityWidget(BaseWidget):
         :returns: None
         """
         dialog = FitRangeConfigDialog(
-                upper_lim=(0., 60., self.fit_range[1]),
-                lower_lim=(-1., 60., self.fit_range[0]), dimension='ns')
+            upper_lim=(0., 60., self.fit_range[1]),
+            lower_lim=(-1., 60., self.fit_range[0]), dimension='ns')
 
         if dialog.exec_() == 1:
             upper_limit = dialog.get_widget_value("upper_limit")
@@ -1116,8 +1118,8 @@ class VelocityWidget(BaseWidget):
         self.muon_counter_label.setText("We have detected %d muons " %
                                         self.muon_counter)
         self.last_event_label.setText(
-                "The last muon was detected at %s" %
-                self.last_event_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
+            "The last muon was detected at %s" %
+            self.last_event_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
         for flight_time in self.event_data:
             self.mu_file.write("%s Flight time %s\n" % (
                 self.last_event_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
@@ -1143,8 +1145,8 @@ class VelocityWidget(BaseWidget):
                                             self.muon_counter)
             self.active_since = datetime.datetime.utcnow()
             self.active_since_label.setText(
-                    "The measurement is active since %s" %
-                    self.active_since.strftime("%a %d %b %Y %H:%M:%S UTC"))
+                "The measurement is active since %s" %
+                self.active_since.strftime("%a %d %b %Y %H:%M:%S UTC"))
 
             for chan in range(4):
                 if dialog.get_widget_value("upper_checkbox_%d" % chan):
@@ -1255,6 +1257,7 @@ class DecayWidget(BaseWidget):
     :type pulse_extractor: muonic.analysis.analyzer.PulseExtractor
     :param parent: parent widget
     """
+
     def __init__(self, logger, filename, pulse_extractor, parent=None):
         BaseWidget.__init__(self, logger, parent)
 
@@ -1296,8 +1299,8 @@ class DecayWidget(BaseWidget):
 
         # we want the plot canvas to fill as much space as possible
         self.plot_canvas.setSizePolicy(
-                QtGui.QSizePolicy.Expanding,
-                QtGui.QSizePolicy.Expanding)
+            QtGui.QSizePolicy.Expanding,
+            QtGui.QSizePolicy.Expanding)
 
         # decay trigger
         self.trigger = DecayTriggerThorough(logger)
@@ -1371,9 +1374,9 @@ class DecayWidget(BaseWidget):
         :returns: None
         """
         dialog = FitRangeConfigDialog(
-                upper_lim=(0., 10., self.fit_range[1]),
-                lower_lim=(-1., 10., self.fit_range[0]),
-                dimension='microsecond')
+            upper_lim=(0., 10., self.fit_range[1]),
+            lower_lim=(-1., 10., self.fit_range[0]),
+            dimension='microsecond')
 
         if dialog.exec_() == 1:
             upper_limit = dialog.get_widget_value("upper_limit")
@@ -1400,18 +1403,18 @@ class DecayWidget(BaseWidget):
         :returns: None
         """
         decay = self.trigger.trigger(
-                pulses, single_channel=self.single_pulse_channel,
-                double_channel=self.double_pulse_channel,
-                veto_channel=self.veto_pulse_channel,
-                min_decay_time=self.decay_min_time,
-                min_single_pulse_width=self.min_single_pulse_width,
-                max_single_pulse_width=self.max_single_pulse_width,
-                min_double_pulse_width=self.min_double_pulse_width,
-                max_double_pulse_width=self.max_double_pulse_width)
+            pulses, single_channel=self.single_pulse_channel,
+            double_channel=self.double_pulse_channel,
+            veto_channel=self.veto_pulse_channel,
+            min_decay_time=self.decay_min_time,
+            min_single_pulse_width=self.min_single_pulse_width,
+            max_single_pulse_width=self.max_single_pulse_width,
+            min_double_pulse_width=self.min_double_pulse_width,
+            max_double_pulse_width=self.max_double_pulse_width)
 
         if decay is not None:
             when = datetime.datetime.utcnow()
-            self.event_data.append((decay / 1000, 
+            self.event_data.append((decay / 1000,
                                     when.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]))
             self.muon_counter += 1
             self.last_event_time = when
@@ -1436,11 +1439,11 @@ class DecayWidget(BaseWidget):
         self.muon_counter_label.setText("We have %d decayed muons " %
                                         self.muon_counter)
         self.last_event_label.setText(
-                "Last detected decay at time %s " %
-                self.last_event_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
+            "Last detected decay at time %s " %
+            self.last_event_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
 
         for decay in self.event_data:
-            decay_time = decay[1]#.replace(' ', '_')
+            decay_time = decay[1]  # .replace(' ', '_')
             self.mu_file.write("%s Decay %s\n" % (repr(decay_time),
                                                   repr(decay[0])))
 
@@ -1466,21 +1469,21 @@ class DecayWidget(BaseWidget):
                                             self.muon_counter)
             self.active_since = datetime.datetime.utcnow()
             self.active_since_label.setText(
-                    "The measurement is active since %s" %
-                    self.active_since.strftime("%a %d %b %Y %H:%M:%S UTC"))
+                "The measurement is active since %s" %
+                self.active_since.strftime("%a %d %b %Y %H:%M:%S UTC"))
 
             self.decay_min_time = int(
-                    dialog.get_widget_value("min_pulse_time"))
+                dialog.get_widget_value("min_pulse_time"))
 
             if dialog.get_widget_value("set_pulse_width_conditions"):
                 self.min_single_pulse_width = int(
-                        dialog.get_widget_value("min_single_pulse_width"))
+                    dialog.get_widget_value("min_single_pulse_width"))
                 self.max_single_pulse_width = int(
-                        dialog.get_widget_value("max_single_pulse_width"))
+                    dialog.get_widget_value("max_single_pulse_width"))
                 self.min_double_pulse_width = int(
-                        dialog.get_widget_value("min_double_pulse_width"))
+                    dialog.get_widget_value("min_double_pulse_width"))
                 self.max_double_pulse_width = int(
-                        dialog.get_widget_value("max_double_pulse_width"))
+                    dialog.get_widget_value("max_double_pulse_width"))
 
             for chan in range(4):
                 if dialog.get_widget_value("single_checkbox_%d" % chan):
@@ -1599,7 +1602,7 @@ class DecayWidget(BaseWidget):
                 self.logger.info(("The muon decay measurement was " +
                                   "active for %f hours") %
                                  get_hours_from_duration(
-                                         self.measurement_duration))
+                    self.measurement_duration))
                 rename_muonic_file(self.measurement_duration,
                                    self.mu_file.get_filename())
             except (OSError, IOError):
@@ -1617,6 +1620,7 @@ class DAQWidget(BaseWidget):
     :type filename: str
     :param parent: parent widget
     """
+
     def __init__(self, logger, filename, parent=None):
         BaseWidget.__init__(self, logger, parent)
 
@@ -1682,8 +1686,8 @@ class DAQWidget(BaseWidget):
                 self.start_time = datetime.datetime.utcnow()
                 self.output_file.open("a")
                 self.output_file.write(
-                        "# daq data run from: %s\n" %
-                        self.start_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
+                    "# daq data run from: %s\n" %
+                    self.start_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
 
                 self.write_status = QtGui.QLabel("Writing to %s" %
                                                  repr(self.output_file))
@@ -1756,7 +1760,7 @@ class DAQWidget(BaseWidget):
             try:
                 self.logger.info("The raw data was written for %f hours" %
                                  get_hours_from_duration(
-                                         self.measurement_duration))
+                                     self.measurement_duration))
                 rename_muonic_file(self.measurement_duration,
                                    self.output_file.get_filename())
             except (OSError, IOError):
@@ -1828,7 +1832,7 @@ class GPSWidget(BaseWidget):
         :returns: None
         """
         self.refresh_button.setEnabled(False)
-        self.gps_dump = [] 
+        self.gps_dump = []
         self.logger.info('Reading GPS.')
         self.parent.process_incoming()
         self.active(True)
@@ -1866,7 +1870,7 @@ class GPSWidget(BaseWidget):
         # sometimes, the widget will not register the line where the DG command is put
         if not self.gps_dump[1].startswith('DG'):
             self.msg_offset = -1
-	
+
         gps_time = ''
         pos_fix = 0
         latitude = ''
@@ -1897,7 +1901,8 @@ class GPSWidget(BaseWidget):
 
             self.gps_dump = []
         except Exception as e:
-            self.logger.warn('Error evaluating GPS information. Error %s'%str(e))
+            self.logger.warn(
+                'Error evaluating GPS information. Error %s' % str(e))
             self.gps_dump = []
             self.active(False)
             return False

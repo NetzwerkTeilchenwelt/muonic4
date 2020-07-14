@@ -15,7 +15,7 @@ class BaseDialog(QtGui.QDialog):
     :type window_title: str
     """
     DEFAULT_ITEM_LABELS = ["Chan0", "Chan1", "Chan2", "Chan3"]
-    
+
     def __init__(self, window_title):
         QtGui.QDialog.__init__(self)
         self.setWindowTitle(window_title)
@@ -42,7 +42,7 @@ class BaseDialog(QtGui.QDialog):
             elif isinstance(widget, QtGui.QLineEdit):
                 return widget.text()
         return None
-    
+
     def button_box(self, left=80, top=900):
         """
         Create a custom button for cancel/apply.
@@ -109,7 +109,7 @@ class BaseDialog(QtGui.QDialog):
             check_box.setGeometry(QtCore.QRect(left, 40 + index * 40, 119, 28))
             check_box.setObjectName("%s_%d" % (object_name, index))
             check_box.setText(label)
- 
+
             if checked_items is not None and index in checked_items:
                 check_box.setChecked(True)
 
@@ -122,7 +122,7 @@ class DecayConfigDialog(BaseDialog):
     """
     Settings for the muondecay
     """
-    
+
     def __init__(self):
         BaseDialog.__init__(self, "Muon Decay Configuration")
 
@@ -288,7 +288,7 @@ class ThresholdDialog(BaseDialog):
             spinbox.setSuffix(' mV')
             layout.addWidget(QtGui.QLabel("Channel %d" % channel))
             layout.addWidget(spinbox)
-                        
+
         layout.addWidget(self.button_box(left=0))
 
         self.show()
@@ -310,7 +310,7 @@ class ConfigDialog(BaseDialog):
     DEFAULT_CHANNEL_STATES = [True] * 4
     DEFAULT_COINCIDENCE_STATES = [True] + [False] * 3
     DEFAULT_CHANNEL_VETO_STATES = [False] * 3
-    
+
     def __init__(self, channel_states=DEFAULT_CHANNEL_STATES,
                  coincidence_states=DEFAULT_COINCIDENCE_STATES,
                  veto_enabled=False,
@@ -335,26 +335,26 @@ class ConfigDialog(BaseDialog):
 
         layout = QtGui.QGridLayout(self)
         layout.addWidget(
-                self.choice_group(label="Select Channel",
-                                  object_name="channel_checkbox",
-                                  checked_items=checked_channels,
-                                  left=300), 0, 0)
+            self.choice_group(label="Select Channel",
+                              object_name="channel_checkbox",
+                              checked_items=checked_channels,
+                              left=300), 0, 0)
         layout.addWidget(
-                self.choice_group(radio=True, label="Trigger Condition",
-                                  object_name="coincidence_checkbox",
-                                  checked_items=checked_coincidences,
-                                  item_labels=["Single", "Twofold",
-                                               "Threefold", "Fourfold"],
-                                  left=20), 0, 1)
+            self.choice_group(radio=True, label="Trigger Condition",
+                              object_name="coincidence_checkbox",
+                              checked_items=checked_coincidences,
+                              item_labels=["Single", "Twofold",
+                                           "Threefold", "Fourfold"],
+                              left=20), 0, 1)
         layout.addWidget(
-                self.choice_group(radio=True, label="Veto",
-                                  checkable=True, checked=veto_enabled,
-                                  object_name="veto_checkbox",
+            self.choice_group(radio=True, label="Veto",
+                              checkable=True, checked=veto_enabled,
+                              object_name="veto_checkbox",
 
 
-                                  checked_items=checked_channel_vetos,
-                                  item_labels=["Chan1", "Chan2", "Chan3"],
-                                  left=180), 0, 2)
+                              checked_items=checked_channel_vetos,
+                              item_labels=["Chan1", "Chan2", "Chan3"],
+                              left=180), 0, 2)
         layout.addWidget(self.button_box(left=30, top=300), 1, 2, 1, 2)
 
         self.show()
@@ -371,7 +371,7 @@ class AdvancedDialog(BaseDialog):
     :param write_daq_status: write DAQ status to raw file
     :type write_daq_status: bool
     """
-    
+
     def __init__(self, gate_width=100, time_window=5.0,
                  write_daq_status=False):
         BaseDialog.__init__(self, "Advanced Configurations")
@@ -447,6 +447,7 @@ class HelpDialog(BaseDialog):
         layout.addWidget(button_box)
 
         self.show()
+
 
 if __name__ == "__main__":
     import sys

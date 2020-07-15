@@ -30,4 +30,4 @@ pip install -r requirements.txt
 ## Todo for the Software
 - [ ] Port the headless version
 - [ ] Implement socket communication
-- [ ] Convert Muonic to Python3
+- [ ] Convert Muonic to Python3<>

@@ -33,7 +33,7 @@ class Skyview():
         # setup connection to QuarkNET card, enable communication
         self.client = DAQProvider(logger=self.logger)
         #self.get_gps_info()
-        self.get_temp_and_pressure()
+        #self.get_temp_and_pressure()
         # disable data flow for startup
         self.stop_reading_data()
         # disable status message

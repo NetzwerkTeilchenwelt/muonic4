@@ -263,7 +263,7 @@ class Skyview():
                 except:
                     self.logger.debug('Queue empty!')
                     break
-                # print(msg)
+                #print(msg)
                 if msg.startswith('DS'):
                     if len(msg) >= 3:
                         self.countqueue.put(msg)

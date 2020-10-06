@@ -32,8 +32,8 @@ class Skyview():
         self.logger.addHandler(ch)
 
         # setup connection to QuarkNET card, enable communication
-        #self.client = daq.DAQProvider(logger=self.logger)
-        self.client = daq.DAQSimulationConnection(logger=self.logger)
+        self.client = daq.DAQProvider(logger=self.logger)
+        #self.client = daq.DAQSimulationConnection(logger=self.logger)
 
         # disable data flow for startup
         self.stop_reading_data()
@@ -46,18 +46,12 @@ class Skyview():
         if data taking is turned off. Otherwise just send command to DAQ card.
         """
         if self.running == False:
-            print("before put")
             self.client.put(msg)
-            print("before sleep")
             sleep(0.5)
-            print("before get")
             self.client.get(0)
-            print("before if")
             if msg == 'ST 0' or msg.startswith('WC'):
-                print("in if")
                 self.client.get(0)
         else:
-            print("in else")
             self.client.put(msg)
 
     def reset_scalars(self):
@@ -115,6 +109,7 @@ class Skyview():
         scan = 0
         while scan < 10:
             response_th = self.client.get(0)
+            self.logger.debug(f"Threashold response: {response_th}")
             if response_th.startswith('TL') and len(response_th) > 9:
                 self.logger.info("Thresholds set to %s" % response_th)
                 break

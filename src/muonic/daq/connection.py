@@ -4,7 +4,7 @@ Provides DAQ server and connection classes to interface with the serial port.
 
 from __future__ import print_function
 import abc
-from future.utils import with_metaclass
+#from future.utils import with_metaclass
 import logging
 import os
 import queue
@@ -21,7 +21,7 @@ except ImportError:
 from muonic.daq import DAQMissingDependencyError
 
 
-class BaseDAQConnection(with_metaclass(abc.ABCMeta, object)):
+class BaseDAQConnection(metaclass=abc.ABCMeta):
     """
     Base DAQ Connection class.
 
@@ -57,9 +57,10 @@ class BaseDAQConnection(with_metaclass(abc.ABCMeta, object)):
         serial_port = None
 
         def get_dev_path(script):
-            tty = subprocess.Popen(
-                [script], stdout=subprocess.PIPE).communicate()[0]
-            return "/dev/%s" % tty.rstrip('\n')
+            tty = subprocess.Popen([script], stdout=subprocess.PIPE).communicate()[0]
+            print(type(tty))
+            path = tty.decode('ASCII').rstrip("\n")
+            return f"/dev/{path}"
 
         while not connected:
             try:
@@ -67,8 +68,8 @@ class BaseDAQConnection(with_metaclass(abc.ABCMeta, object)):
             except OSError:
                 # try using package script ../../bin/which_tty_daq
                 which_tty_daq = os.path.abspath(
-                    os.path.join(os.path.dirname(__file__), os.pardir,
-                                 os.pardir, 'bin', 'which_tty_daq'))
+                        os.path.join(os.path.dirname(__file__), os.pardir,
+                                     os.pardir, 'bin', 'which_tty_daq'))
 
                 if not os.path.exists(which_tty_daq):
                     raise OSError("Can not find binary which_tty_daq")
@@ -136,7 +137,7 @@ class DAQConnection(BaseDAQConnection):
         """
         min_sleep_time = 0.01  # seconds
         max_sleep_time = 0.2  # seconds
-        sleep_time = min_sleep_time  # seconds
+        sleep_time = min_sleep_time  #seconds
 
         while self.running:
             try:
@@ -167,16 +168,16 @@ class DAQConnection(BaseDAQConnection):
             try:
                 while self.in_queue.qsize():
                     try:
-                        self.serial_port.write(str(self.in_queue.get(0)) +
-                                               "\r")
+                        outstr = str(self.in_queue.get(0)) + "\r"
+                        self.serial_port.write(outstr.encode() )
                     except (queue.Empty, serial.SerialTimeoutException):
                         pass
             except NotImplementedError:
                 self.logger.debug("Running Mac version of muonic.")
                 while True:
                     try:
-                        self.serial_port.write(str(self.in_queue.get(
-                            timeout=0.01)) + "\r")
+                        outstr = str(self.in_queue.get(timeout=0.01)) + "\r"
+                        self.serial_port.write(outstr.encode())
                     except (queue.Empty, serial.SerialTimeoutException):
                         pass
             sleep(0.1)

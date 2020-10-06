@@ -4,7 +4,7 @@ Provides the public interfaces to read from and send to a DAQ card
 
 from __future__ import print_function
 import abc
-from future.utils import with_metaclass
+#from future.utils import with_metaclass
 import logging
 import multiprocessing as mp
 import re
@@ -20,7 +20,7 @@ from muonic.daq import DAQIOError, DAQMissingDependencyError
 from muonic.daq import DAQSimulationConnection, DAQConnection
 
 
-class BaseDAQProvider(with_metaclass(abc.ABCMeta, object)):
+class BaseDAQProvider(metaclass=abc.ABCMeta):
     """
     Base class defining the public API and helpers for the
     DAQ provider implementations
@@ -33,7 +33,7 @@ class BaseDAQProvider(with_metaclass(abc.ABCMeta, object)):
 
     def __init__(self, logger=None):
         if logger is None:
-            logger = logging.getLogger()
+            logger = logging.getLogger(self.__module__ + '.' + self.__class__.__name__)
         self.logger = logger
 
     @abc.abstractmethod
@@ -106,7 +106,7 @@ class DAQProvider(BaseDAQProvider):
         else:
             self.daq = DAQConnection(self.in_queue, self.out_queue,
                                      self.logger)
-
+        
         # Set up the thread to do asynchronous I/O. More can be made if
         # necessary. Set daemon flag so that the threads finish when the main
         # app finishes
@@ -119,7 +119,7 @@ class DAQProvider(BaseDAQProvider):
                                            name="pWRITER")
             self.write_thread.daemon = True
             self.write_thread.start()
-
+        
     def get(self, *args):
         """
         Get something from the DAQ.
@@ -132,10 +132,14 @@ class DAQProvider(BaseDAQProvider):
         :raises: DAQIOError
         """
         try:
-            line = self.out_queue.get(*args)
+            line = self.out_queue.get(*args).decode("ascii")
+            self.logger.debug(f"GOT LINE: {line}")
         except queue.Empty:
-            raise DAQIOError("Queue is empty")
-
+            line = ''
+            self.logger.debug(f"GOT EMPTY QUEUE")
+            pass
+            #raise DAQIOError("Queue is empty")
+        #print(f"type of line is {type(line)}")
         return self._validate_line(line)
 
     def put(self, *args):
@@ -176,7 +180,7 @@ class DAQClient(BaseDAQProvider):
     :type logger: logging.Logger
     :raises: DAQMissingDependencyError
     """
-
+    
     def __init__(self, address='127.0.0.1', port=5556, logger=None):
         BaseDAQProvider.__init__(self, logger)
         try:
@@ -200,7 +204,7 @@ class DAQClient(BaseDAQProvider):
             line = self.socket.recv_string()
         except Exception:
             raise DAQIOError("Socket error")
-
+        
         return self._validate_line(line)
 
     def put(self, *args):

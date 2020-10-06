@@ -3,7 +3,7 @@ from .muonic import Skyview
 sk = Skyview()
 
 sk.setup_channel(ch0=True, ch1=True, ch2=True,
-                 ch3=True, coincidence='threefold')
+                 ch3=True, coincidence='twofold')
 
 sk.set_threashold(th_0=110, th_1=110, th_2=180, th_3=110)
 

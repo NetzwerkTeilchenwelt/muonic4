@@ -1,6 +1,6 @@
-from lib.Skyview import Skyview
+from lib.daq.DAQServer import DAQServer
 
-sk = Skyview()
+sk = DAQServer()
 
 sk.setup_channel(ch0=True, ch1=True, ch2=True,
                  ch3=True, coincidence='threefold')

@@ -1,4 +1,5 @@
-from Enum import Enum
+from enum import Enum
+from uuid import uuid4
 
 class RecordType(Enum):
     """
@@ -25,9 +26,7 @@ class Record(object):
     :param payload: Payload to be send 
     """
 
-    def __init__(self, RecType, timestamp, number,id, payload):
+    def __init__(self, RecType, timestamp, payload):
         self.type = RecType
         self.timestamp = timestamp
-        self.number = number
-        self.id = id
         self.payload = payload

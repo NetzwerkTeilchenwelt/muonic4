@@ -1,5 +1,4 @@
 from enum import Enum
-from uuid import uuid4
 
 class RecordType(Enum):
     """
@@ -21,8 +20,6 @@ class Record(object):
 
     :param RecType: Type of the record
     :param timestamp: Unixtimestamp
-    :param number: Sequential number of the record
-    :param id: UUID4 of the record
     :param payload: Payload to be send 
     """
 

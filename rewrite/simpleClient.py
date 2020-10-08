@@ -2,6 +2,7 @@ import zmq
 import time
 import jsonpickle
 from lib.common.Record import Record
+from lib.common.CountRecord import CountRecord
 import xmlrpc.client
 import threading
 
@@ -16,8 +17,9 @@ def reciever_loop():
     while True:
         msg = sock.recv_string()
         obj = jsonpickle.decode(msg)
-        print(f"OBJ type {type(obj)}")
-        print(f"Type: {obj.type} timestamp: {obj.timestamp} payload: {obj.payload}")
+        #print(f"OBJ type {type(obj)}")
+        print(f"Type: {obj.type} timestamp: {obj.timestamp} payloads: {repr(obj.payload)}")
+        
 
     sock.close()
     ctx.term()
@@ -35,7 +37,7 @@ s.setup_channel(True, True, True, True, 'threefold')
 
 s.set_threashold(110, 110, 180, 110)
 
-s.measure_rates(10.0, 1.0)
+#s.measure_rates(10.0, 1.0)
 
 while True:
     pass

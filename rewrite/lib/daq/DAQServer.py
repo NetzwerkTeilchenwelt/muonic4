@@ -5,6 +5,9 @@ from time import time, sleep
 from multiprocessing import Queue
 import threading
 from ..common.Record import Record, RecordType
+from ..common.CountRecord import CountRecord
+from ..common.TemperatureRecord import TemperatureRecord
+from ..common.PressureRecord import PressureRecord, PressureType
 import zmq
 import jsonpickle
 
@@ -22,8 +25,6 @@ class DAQServer(object):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
         self.socket.bind("tcp://*:1234")
-        print("Sending Foobar")
-        self.socket.send_string("Foobar")
         # package number
         self.package_number = 0
 
@@ -77,7 +78,10 @@ class DAQServer(object):
         """
         self.logger.debug('Start reading data into queues.')
         self.do('CE')
-        self.process_incoming()
+        x = threading.Thread(target=self.process_incoming)
+        x.start()
+        #self.process_incoming()
+        
 
     def stop_reading_data(self):
         """
@@ -175,6 +179,9 @@ class DAQServer(object):
             # get temperature from temperature queue
             if self.tempqueue.qsize():
                 msg_temp = self.tempqueue.get(0)
+                tmpRec = TemperatureRecord(msg_temp)
+                rec = Record(RecordType.TEMPERATURE, datetime.now(),tmpRec)
+                self.socket.send_string(jsonpickle.encode(rec))
                 self.temperature = float(msg_temp.split("=")[1])
             else:
                 self.logger.info(
@@ -193,6 +200,9 @@ class DAQServer(object):
         else:
             self.do('TH')
             msg_temp = self.client.get(0).decode("ascii")
+            tmpRec = TemperatureRecord(msg_temp)
+            rec = Record(RecordType.TEMPERATURE, datetime.now(),tmpRec)
+            self.socket.send_string(jsonpickle.encode(rec))
             print(f"type: {type(msg_temp)}")
             if msg_temp.startswith('TH'):
                 self.temperature = float(msg_temp.split("=")[1])
@@ -202,6 +212,9 @@ class DAQServer(object):
                 self.logger.error("Could not read temperature.")
             self.do('BA')
             msg_press = self.client.get(0).decode("ascii")
+            presRec = PressureRecord(msg_press)
+            rec = Record(RecordType.PRESSURE, datetime.now(),presRec)
+            self.socket.send_string(jsonpickle.encode(rec))
             if msg_press.startswith('BA'):
                 self.pressure = float(msg_press.split()[1])
                 self.logger.debug('Measured pressure: %f' % self.pressure)
@@ -224,6 +237,9 @@ class DAQServer(object):
         """
         Check message for pressure information.
         """
+        presRec = PressureRecord(msg)
+        rec = Record(RecordType.PRESSURE, datetime.now(),presRec)
+        self.socket.send_string(jsonpickle.encode(rec))
         if msg.startswith('BA'):
             self.pressure = float(msg.split()[1])
         elif msg.startswith('mBar'):
@@ -279,24 +295,27 @@ class DAQServer(object):
                 #print(msg)
                 if msg.startswith('DS'):
                     if len(msg) >= 3:
-                        rec = Record(RecordType.COUNTER, datetime.now(),msg)
+                        cntRec = CountRecord(msg)
+                        rec = Record(RecordType.COUNTER, datetime.now(),cntRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.countqueue.put(msg)
                 elif msg.startswith('TH'):
                     if len(msg) >= 9:
-                        rec = Record(RecordType.TEMPERATURE, datetime.now(),msg)
+                        tmpRec = TemperatureRecord(msg)
+                        rec = Record(RecordType.TEMPERATURE, datetime.now(),tmpRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.tempqueue.put(msg)
                 elif msg.startswith('BA') or msg.startswith('mBar'):
                     if len(msg) >= 4:
-                        rec = Record(RecordType.PRESSURE, datetime.now(),msg)
+                        presRec = PressureRecord(msg)
+                        rec = Record(RecordType.PRESSURE, datetime.now(),presRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.pressqueue.put(msg)
                 elif msg.startswith('CD') or msg.startswith('CE'):
                     continue
                 else:
                     rec = Record(RecordType.DATA, datetime.now(),msg)
-                    self.socket.send_string(jsonpickle.encode(rec))
+                    #self.socket.send_string(jsonpickle.encode(rec))
                     self.dataqueue.put(msg)
             else:
                 sleep(0.2)
@@ -330,7 +349,9 @@ class DAQServer(object):
                 self.counts_trigger = int(item[3:], 16)
             elif ("S5" in item) & (len(item) == 11):
                 counters_time = float(int(item[3:], 16))
-
+        cntRec = CountRecord(msg)
+        rec = Record(RecordType.COUNTER, datetime.now(),cntRec)
+        self.socket.send_string(jsonpickle.encode(rec))
         return self.counts_ch0, self.counts_ch1, self.counts_ch2, self.counts_ch3, self.counts_trigger
 
     def calculate_rates(self):
@@ -365,121 +386,18 @@ class DAQServer(object):
                 queue.get(0)
         self.logger.debug('Finished clearing queues.')
 
-    def write_rates_to_file(self, filename='', firstline=False):
-        """
-        Saves data to file during rate measurements.
-        """
-        with open(filename, 'a') as f:
-            if firstline:
-                self.logger.info(
-                    'Starting to write data to file %s' % filename)
-                f.write(
-                    " date | time | R0 | R1 | R2 | R3 | R_trigger | chan0 | chan1 | chan2 | chan3 | trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
-            else:
-                f.write("%s %f %f %f %f %f %f %f %f %f %f %f %f %f \n" % (self.dateandtime,
-                                                                          self.rates[0],
-                                                                          self.rates[1],
-                                                                          self.rates[2],
-                                                                          self.rates[3],
-                                                                          self.rates[4],
-                                                                          self.counts_ch0,
-                                                                          self.counts_ch1,
-                                                                          self.counts_ch2,
-                                                                          self.counts_ch3,
-                                                                          self.counts_trigger,
-                                                                          self.delta_time,
-                                                                          self.pressure_mbar,
-                                                                          self.temperature))
+    
+    def run(self):
+        self.running = True
+        self.x = threading.Thread(target=self.start_reading_data)
+        self.x.start()
+    
+    def stop(self):
+        self.running = False
+        self.x.stop()
 
-    def measure_rates(self, timewindow=5.0, meastime=None):
-        """
-        Measure rates seen by the counters.
-        :param timewindow: Time between successive rate measurements in seconds. Default is 5 seconds.
-        :param meastime: Total measurement time in minutes. Default is None.
-        """
-        if isinstance(meastime, float):
-            self.logger.info('Starting rate measurement. Rate is measured every %f seconds, total measurement time: %f min' % (
-                timewindow, meastime))
-            self.running = True
-            self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.write_rates_to_file(
-                filename=self.starttime+"_R.txt", firstline=True)
-            self.reset_scalars()
-            x = threading.Thread(target=self.start_reading_data)
-            x.start()
-
-            t = 0
-            try:
-                while t < (meastime*60):
-                    self.read_scalars()
-                    time_start = time()
-                    sleep(timewindow)
-                    self.read_scalars()
-                    time_end = time()
-                    self.dateandtime = datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S.%f")[:-3]
-                    self.do('TH')
-                    self.do('BA')
-                    sleep(0.5)
-                    self.get_temp_and_pressure()
-                    self.delta_time = time_end-time_start
-                    self.calculate_rates()
-                    self.write_rates_to_file(filename=self.starttime+"_R.txt")
-                    self.logger.info('Measurement progress: %f %%' %
-                                     (100*t/(meastime*60)))
-                    t += self.delta_time
-                self.stop_reading_data()
-                self.logger.info('Measurement is stopping. Please wait!')
-                sleep(5)
-                self.running = False
-                self.logger.info('Measurement stopped!')
-                self.clear_queues()
-            except (KeyboardInterrupt, AttributeError, RuntimeError, NameError, SystemExit):
-                self.stop_reading_data()
-                self.logger.info('Measurement is stopping. Please wait!')
-                sleep(5)
-                self.running = False
-                self.logger.info('Measurement stopped!')
-                self.clear_queues()
-
-        elif meastime == None:
-            self.logger.info(
-                'Starting rate measurement. Rate is measured every %f seconds. No measurement time set.' % timewindow)
-            self.running = True
-            self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.write_rates_to_file(
-                filename=self.starttime+"_R.txt", firstline=True)
-            self.reset_scalars()
-            x = threading.Thread(target=self.process_incoming)
-            x.start()
-
-            try:
-                while self.running:
-                    self.read_scalars()
-                    time_start = time()
-                    sleep(timewindow)
-                    self.read_scalars()
-                    time_end = time()
-                    self.dateandtime = datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S.%f")[:-3]
-                    self.do('TH')
-                    self.do('BA')
-                    sleep(0.5)
-                    self.get_temp_and_pressure()
-                    self.delta_time = time_end-time_start
-                    self.calculate_rates()
-                    self.write_rates_to_file(filename=self.starttime+"_R.txt")
-            except (KeyboardInterrupt, AttributeError, RuntimeError, NameError, SystemExit):
-                self.stop_reading_data()
-                self.logger.info('Measurement is stopping. Please wait!')
-                sleep(5)
-                self.running = False
-                self.logger.info('Measurement stopped!')
-                self.clear_queues()
-
-        else:
-            self.logger.error(
-                'Got incorrect meastime. If you do not want to specify meastime, set it to None.')
+    def setRunning(self, isRunning):
+        self.running = isRunning
 
     def measure_pulses(self, meastime=None):
         """

@@ -5,7 +5,9 @@ import jsonpickle
 import numpy as np
 
 from ..common.CountRecord import CountRecord
-from ..common.Record import RecordType
+from ..common.Record import RecordType, Record
+from ..common.PressureRecord import PressureType, PressureRecord
+from ..common.TemperatureRecord import TemperatureRecord
 from datetime import datetime
 from time import time, sleep
 import threading
@@ -33,7 +35,8 @@ class RateAnalyzer():
         self.outQueue = queue.Queue()
         writerTask = threading.Thread(target=self.fileWriter).start()
 
-
+        self.pressure = 99
+        self.temperature = 20
     
     def fileWriter(self):
             with open(self.filename, 'a') as f:
@@ -51,22 +54,6 @@ class RateAnalyzer():
             self.logger.info(
                 'Starting to write data to file %s' % self.filename)
             self.outQueue.put(" date | time | R0 | R1 | R2 | R3 | R_trigger | chan0 | chan1 | chan2 | chan3 | trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
-        else:
-            pass
-            # f.write("%s %f %f %f %f %f %f %f %f %f %f %f %f %f \n" % (self.dateandtime,
-            #                                                           self.rates[0],
-            #                                                           self.rates[1],
-            #                                                           self.rates[2],
-            #                                                           self.rates[3],
-            #                                                           self.rates[4],
-            #                                                           self.server.getCounts('0'),
-            #                                                           self.server.getCounts('1'),
-            #                                                           self.server.getCounts('2'),
-            #                                                           self.server.getCounts('3'),
-            #                                                           self.server.getCounts('trigger'),
-            #                 f                                          self.delta_time,
-            #                                                           self.pressure_mbar,
-            #                                                           self.temperature))
 
 
     def runDaemon(self):
@@ -92,7 +79,11 @@ class RateAnalyzer():
                     if self.dateandtime is None: 
                         self.dateandtime = datetime.now()
                     
-                    self.outQueue.put(f"{self.dateandtime} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {self.delta_time}")
+                    self.outQueue.put(f"{self.dateandtime} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {self.delta_time} {self.current_pressure} {self.temperature}")
+            elif obj.type == RecordType.PRESSURE and obj.payload.valid == True and obj.payload.pressure_type == PressureType.MBAR:
+                    self.current_pressure = obj.payload.pressure
+            elif obj.type == RecordType.TEMPERATURE and obj.payload.valid == True:
+                self.temperature = obj.payload.temperature
                     #print(f"{self.dateandtime} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]}")
 
 

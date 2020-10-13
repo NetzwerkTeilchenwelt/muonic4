@@ -36,7 +36,7 @@ class PressureRecord():
             self.pressure_type = PressureType.MBAR
             return
         
-        self.valid = False  
+        #self.valid = False  
         
     def __repr__(self):
         if self.valid: 

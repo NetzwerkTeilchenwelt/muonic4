@@ -1,9 +1,15 @@
 import xmlrpc.client
 import zmq
 import logging
+import jsonpickle
+import numpy as np
+
+from ..common.CountRecord import CountRecord
+from ..common.Record import RecordType
 from datetime import datetime
 from time import time, sleep
 import threading
+import queue
  
 
 class RateAnalyzer():
@@ -19,57 +25,76 @@ class RateAnalyzer():
         self.server = xmlrpc.client.ServerProxy("http://localhost:5556")
         self.server.setup_channel(True, True, True, True, 'threefold')
         self.server.set_threashold(110, 110, 180, 110)
-        self.server.get_gps_info()
+       # self.server.get_gps_info()
+        self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.filename = self.starttime+"_R.txt"
+        #self.file = open(self.filename, 'a')
+        self.prev_rates = None
+        self.outQueue = queue.Queue()
+        writerTask = threading.Thread(target=self.fileWriter).start()
 
-    def write_rates_to_file(self, filename='', firstline=False):
+
+    
+    def fileWriter(self):
+            with open(self.filename, 'a') as f:
+                while True:
+                    item = self.outQueue.get()
+                    f.write(item)
+                    f.write('\n')
+                    f.flush()
+
+    def write_rates_to_file(self, firstline=False):
         """
         Saves data to file during rate measurements.
         """
-        with open(filename, 'a') as f:
-            if firstline:
-                self.logger.info(
-                    'Starting to write data to file %s' % filename)
-                f.write(
-                    " date | time | R0 | R1 | R2 | R3 | R_trigger | chan0 | chan1 | chan2 | chan3 | trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
-            else:
-                f.write("%s %f %f %f %f %f %f %f %f %f %f %f %f %f \n" % (self.dateandtime,
-                                                                          self.rates[0],
-                                                                          self.rates[1],
-                                                                          self.rates[2],
-                                                                          self.rates[3],
-                                                                          self.rates[4],
-                                                                          self.server.getCounts('0'),
-                                                                          self.server.getCounts('1'),
-                                                                          self.server.getCounts('2'),
-                                                                          self.server.getCounts('3'),
-                                                                          self.server.getCounts('trigger'),
-                                                                          self.delta_time,
-                                                                          self.pressure_mbar,
-                                                                          self.temperature))
+        if firstline:
+            self.logger.info(
+                'Starting to write data to file %s' % self.filename)
+            self.outQueue.put(" date | time | R0 | R1 | R2 | R3 | R_trigger | chan0 | chan1 | chan2 | chan3 | trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
+        else:
+            pass
+            # f.write("%s %f %f %f %f %f %f %f %f %f %f %f %f %f \n" % (self.dateandtime,
+            #                                                           self.rates[0],
+            #                                                           self.rates[1],
+            #                                                           self.rates[2],
+            #                                                           self.rates[3],
+            #                                                           self.rates[4],
+            #                                                           self.server.getCounts('0'),
+            #                                                           self.server.getCounts('1'),
+            #                                                           self.server.getCounts('2'),
+            #                                                           self.server.getCounts('3'),
+            #                                                           self.server.getCounts('trigger'),
+            #                 f                                          self.delta_time,
+            #                                                           self.pressure_mbar,
+            #                                                           self.temperature))
 
 
-    def calculate_rates(self):
-        """
-        Calculate rates during rate measurements.
-        """
-        counts_ch0_start, counts_ch1_start, counts_ch2_start, counts_ch3_start, counts_trigger_start = self.server.get_scalars()
-        counts_ch0_end, counts_ch1_end, counts_ch2_end, counts_ch3_end, counts_trigger_end = self.server.get_scalars()
+    def runDaemon(self):
+        while True:
+            msg = self.sock.recv_string()
+            obj = jsonpickle.decode(msg)
+            if obj.type == RecordType.COUNTER and obj.payload.valid == True:
+                print(f"Type: {obj.type} timestamp: {obj.timestamp} payloads: {repr(obj.payload)}")
+                #print(f"date: {datetime.fromtimestamp(obj.timestamp)}")
+                cntRec = obj.payload
+                if self.prev_rates is None:
+                    self.prev_rates = np.array([cntRec.counts_ch0, cntRec.counts_ch1, cntRec.counts_ch2, cntRec.counts_ch3, cntRec.counts_trigger])
+                    self.previous_time = datetime.fromtimestamp(obj.timestamp)
+                else: 
+                    curRates = np.array([cntRec.counts_ch0, cntRec.counts_ch1, cntRec.counts_ch2, cntRec.counts_ch3, cntRec.counts_trigger])
+                    current_time = datetime.fromtimestamp(obj.timestamp)
+                    self.delta_time = (current_time - self.previous_time).total_seconds()
+                    self.previous_time = current_time
 
-        counters_previous = [counts_ch0_start, counts_ch1_start,
-                             counts_ch2_start, counts_ch3_start, counts_trigger_start]
-        counters = [counts_ch0_end, counts_ch1_end,
-                    counts_ch2_end, counts_ch3_end, counts_trigger_end]
+                    deltaRates = curRates - self.prev_rates
+                    self.prev_rates = curRates
+                    deltaRates = deltaRates / self.delta_time
+                    if self.dateandtime is None: 
+                        self.dateandtime = datetime.now()
+                    
+                    self.outQueue.put(f"{self.dateandtime} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {self.delta_time}")
+                    #print(f"{self.dateandtime} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]}")
 
-        self.diff_counters = []
-        self.rates = []
-
-        for i in range(len(counters)):
-            if counters[i] >= counters_previous[i]:
-                self.diff_counters.append(counters[i]-counters_previous[i])
-            elif counters[i] < counters_previous[i]:
-                self.diff_counters.append(
-                    max_counts-counters_previous[i]+counters[i])
-            self.rates.append(self.diff_counters[i]/self.delta_time)
 
 
     def measure_rates(self, timewindow=5.0, meastime=None):
@@ -82,20 +107,21 @@ class RateAnalyzer():
             self.logger.info('Starting rate measurement. Rate is measured every %f seconds, total measurement time: %f min' % (
                 timewindow, meastime))
             self.server.setRunning(True)
-            self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.write_rates_to_file(
-                filename=self.starttime+"_R.txt", firstline=True)
+            
+            self.write_rates_to_file(firstline=True)
             self.server.reset_scalars()
             # x = threading.Thread(target=self.start_reading_data)
             # x.start()
             print("before reading data")
             self.server.start_reading_data()
+            x = threading.Thread(target=self.runDaemon)
+            #x.start()
             print("after reading data")
 
             t = 0
             try:
                 while t < (meastime*60):
-                    self.server.read_scalars()
+                    #self.server.read_scalars()
                     time_start = time()
                     sleep(timewindow)
                     self.server.read_scalars()
@@ -104,11 +130,13 @@ class RateAnalyzer():
                         "%Y-%m-%d %H:%M:%S.%f")[:-3]
                     self.server.do('TH')
                     self.server.do('BA')
-                    sleep(0.5)
                     self.server.get_temp_and_pressure()
+                    sleep(0.5)
                     self.delta_time = time_end-time_start
-                    self.calculate_rates()
-                    self.write_rates_to_file(filename=self.starttime+"_R.txt")
+                    #self.server.calculate_rates()
+                    if not x.isAlive(): 
+                        x.start()
+                    #self.write_rates_to_file()
                     self.logger.info('Measurement progress: %f %%' %
                                      (100*t/(meastime*60)))
                     t += self.delta_time
@@ -131,8 +159,7 @@ class RateAnalyzer():
                 'Starting rate measurement. Rate is measured every %f seconds. No measurement time set.' % timewindow)
             self.running = True
             self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.write_rates_to_file(
-                filename=self.starttime+"_R.txt", firstline=True)
+            self.write_rates_to_file(firstline=True)
             self.server.reset_scalars()
             # x = threading.Thread(target=self.process_incoming)
             # x.start()
@@ -153,8 +180,8 @@ class RateAnalyzer():
                     sleep(0.5)
                     self.server.get_temp_and_pressure()
                     self.delta_time = time_end-time_start
-                    self.calculate_rates()
-                    self.write_rates_to_file(filename=self.starttime+"_R.txt")
+                    
+                    self.write_rates_to_file()
             except (KeyboardInterrupt, AttributeError, RuntimeError, NameError, SystemExit):
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')

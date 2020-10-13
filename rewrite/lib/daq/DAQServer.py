@@ -180,7 +180,7 @@ class DAQServer(object):
             if self.tempqueue.qsize():
                 msg_temp = self.tempqueue.get(0)
                 tmpRec = TemperatureRecord(msg_temp)
-                rec = Record(RecordType.TEMPERATURE, datetime.now(),tmpRec)
+                rec = Record(RecordType.TEMPERATURE, datetime.now().timestamp(),tmpRec)
                 self.socket.send_string(jsonpickle.encode(rec))
                 self.temperature = float(msg_temp.split("=")[1])
             else:
@@ -201,7 +201,7 @@ class DAQServer(object):
             self.do('TH')
             msg_temp = self.client.get(0).decode("ascii")
             tmpRec = TemperatureRecord(msg_temp)
-            rec = Record(RecordType.TEMPERATURE, datetime.now(),tmpRec)
+            rec = Record(RecordType.TEMPERATURE, datetime.now().timestamp(),tmpRec)
             self.socket.send_string(jsonpickle.encode(rec))
             print(f"type: {type(msg_temp)}")
             if msg_temp.startswith('TH'):
@@ -213,7 +213,7 @@ class DAQServer(object):
             self.do('BA')
             msg_press = self.client.get(0).decode("ascii")
             presRec = PressureRecord(msg_press)
-            rec = Record(RecordType.PRESSURE, datetime.now(),presRec)
+            rec = Record(RecordType.PRESSURE, datetime.now().timestamp(),presRec)
             self.socket.send_string(jsonpickle.encode(rec))
             if msg_press.startswith('BA'):
                 self.pressure = float(msg_press.split()[1])
@@ -238,7 +238,7 @@ class DAQServer(object):
         Check message for pressure information.
         """
         presRec = PressureRecord(msg)
-        rec = Record(RecordType.PRESSURE, datetime.now(),presRec)
+        rec = Record(RecordType.PRESSURE, datetime.now().timestamp(),presRec)
         self.socket.send_string(jsonpickle.encode(rec))
         if msg.startswith('BA'):
             self.pressure = float(msg.split()[1])
@@ -296,25 +296,25 @@ class DAQServer(object):
                 if msg.startswith('DS'):
                     if len(msg) >= 3:
                         cntRec = CountRecord(msg)
-                        rec = Record(RecordType.COUNTER, datetime.now(),cntRec)
+                        rec = Record(RecordType.COUNTER, datetime.now().timestamp(),cntRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.countqueue.put(msg)
                 elif msg.startswith('TH'):
                     if len(msg) >= 9:
                         tmpRec = TemperatureRecord(msg)
-                        rec = Record(RecordType.TEMPERATURE, datetime.now(),tmpRec)
+                        rec = Record(RecordType.TEMPERATURE, datetime.now().timestamp(),tmpRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.tempqueue.put(msg)
                 elif msg.startswith('BA') or msg.startswith('mBar'):
                     if len(msg) >= 4:
                         presRec = PressureRecord(msg)
-                        rec = Record(RecordType.PRESSURE, datetime.now(),presRec)
+                        rec = Record(RecordType.PRESSURE, datetime.now().timestamp(),presRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.pressqueue.put(msg)
                 elif msg.startswith('CD') or msg.startswith('CE'):
                     continue
                 else:
-                    rec = Record(RecordType.DATA, datetime.now(),msg)
+                    rec = Record(RecordType.DATA, datetime.now().timestamp(),msg)
                     #self.socket.send_string(jsonpickle.encode(rec))
                     self.dataqueue.put(msg)
             else:
@@ -350,32 +350,32 @@ class DAQServer(object):
             elif ("S5" in item) & (len(item) == 11):
                 counters_time = float(int(item[3:], 16))
         cntRec = CountRecord(msg)
-        rec = Record(RecordType.COUNTER, datetime.now(),cntRec)
+        rec = Record(RecordType.COUNTER, datetime.now().timestamp(),cntRec)
         self.socket.send_string(jsonpickle.encode(rec))
         return self.counts_ch0, self.counts_ch1, self.counts_ch2, self.counts_ch3, self.counts_trigger
 
-    def calculate_rates(self):
-        """
-        Calculate rates during rate measurements.
-        """
-        counts_ch0_start, counts_ch1_start, counts_ch2_start, counts_ch3_start, counts_trigger_start = self.get_scalars()
-        counts_ch0_end, counts_ch1_end, counts_ch2_end, counts_ch3_end, counts_trigger_end = self.get_scalars()
+    # def calculate_rates(self):
+    #     """
+    #     Calculate rates during rate measurements.
+    #     """
+    #     counts_ch0_start, counts_ch1_start, counts_ch2_start, counts_ch3_start, counts_trigger_start = self.get_scalars()
+    #     counts_ch0_end, counts_ch1_end, counts_ch2_end, counts_ch3_end, counts_trigger_end = self.get_scalars()
 
-        counters_previous = [counts_ch0_start, counts_ch1_start,
-                             counts_ch2_start, counts_ch3_start, counts_trigger_start]
-        counters = [counts_ch0_end, counts_ch1_end,
-                    counts_ch2_end, counts_ch3_end, counts_trigger_end]
+    #     counters_previous = [counts_ch0_start, counts_ch1_start,
+    #                          counts_ch2_start, counts_ch3_start, counts_trigger_start]
+    #     counters = [counts_ch0_end, counts_ch1_end,
+    #                 counts_ch2_end, counts_ch3_end, counts_trigger_end]
 
-        self.diff_counters = []
-        self.rates = []
+    #     self.diff_counters = []
+    #     self.rates = []
 
-        for i in range(len(counters)):
-            if counters[i] >= counters_previous[i]:
-                self.diff_counters.append(counters[i]-counters_previous[i])
-            elif counters[i] < counters_previous[i]:
-                self.diff_counters.append(
-                    max_counts-counters_previous[i]+counters[i])
-            self.rates.append(self.diff_counters[i]/self.delta_time)
+    #     for i in range(len(counters)):
+    #         if counters[i] >= counters_previous[i]:
+    #             self.diff_counters.append(counters[i]-counters_previous[i])
+    #         elif counters[i] < counters_previous[i]:
+    #             self.diff_counters.append(
+    #                 max_counts-counters_previous[i]+counters[i])
+    #         self.rates.append(self.diff_counters[i]/self.delta_time)
 
     def clear_queues(self):
         """
@@ -413,7 +413,7 @@ class DAQServer(object):
                 pass
             else:
                 self.running = True
-                self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                self.starttime = datetime.now().timestamp().strftime("%Y-%m-%d_%H-%M-%S")
                 x = threading.Thread(target=self.start_reading_data)
                 x.start()
 
@@ -458,7 +458,7 @@ class DAQServer(object):
                 pass
             else:
                 self.running = True
-                self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                self.starttime = datetime.now().timestamp().strftime("%Y-%m-%d_%H-%M-%S")
                 x = threading.Thread(target=self.start_reading_data)
                 x.start()
 

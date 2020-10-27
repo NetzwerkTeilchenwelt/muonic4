@@ -28,6 +28,7 @@ pip install -r requirements.txt
 - :small_red_triangle: Github Superlinter (disabled for now as it is way to harsh on existing code)
 
 ## Todo for the Software
-- [ ] Port the headless version
-- [ ] Implement socket communication
-- [ ] Convert Muonic to Python3<>
+- :white_check_mark: Port the headless version
+- :white_check_mark: Implement socket communication
+- :white_check_mark: Convert Muonic to Python3
+- [ ] Port the existing analysis' to the new version

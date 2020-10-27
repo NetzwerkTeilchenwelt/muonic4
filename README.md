@@ -6,6 +6,9 @@
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
 Sill in very early development.
 
+### Code organization 
+The source code of muonic 4 currently (!!!) lives in the "rewrite" directory. All pull requests should reference this directory.
+
 ## Documentation
 More documentation can be found [here](https://muonic.readthedocs.io/en/latest/)
 

@@ -1,13 +1,12 @@
 
-
-
-class CountRecord(object):
+class CountRecord():
     """
     Holds the counting information
 
     incoming format:
     DS S0=00000000 S1=00000000 S2=00000000 S3=00000000 S4=00000000 S5=18531FFD
     """
+
     def __init__(self, msg):
         self.msg_bak = msg
         if msg != None:

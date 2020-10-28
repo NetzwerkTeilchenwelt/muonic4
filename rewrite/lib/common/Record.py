@@ -27,3 +27,7 @@ class Record(object):
         self.type = RecType
         self.timestamp = timestamp
         self.payload = payload
+
+    def __repr__(self):
+        return f"{self.type} {self.timestamp} {self.payload}"
+    __str__ = __repr__

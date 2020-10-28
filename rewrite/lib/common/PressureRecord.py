@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class PressureType(Enum):
     """
     Type of measured pressure. Plaindata or mBar

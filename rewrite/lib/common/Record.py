@@ -24,11 +24,12 @@ class Record(object):
     :param payload: Payload to be send 
     """
 
-    def __init__(self, RecType, timestamp, payload):
+    def __init__(self, packageNumber, RecType, timestamp, payload):
+        self.packageNumber = packageNumber
         self.type = RecType
         self.timestamp = timestamp
         self.payload = payload
 
     def __repr__(self):
-        return f"{self.type} {self.timestamp} {self.payload}"
+        return f"{self.packageNumber} {self.type} {self.timestamp} {self.payload}"
     __str__ = __repr__

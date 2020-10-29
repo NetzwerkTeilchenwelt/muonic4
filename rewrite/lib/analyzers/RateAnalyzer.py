@@ -62,7 +62,7 @@ class RateAnalyzer():
             obj = jsonpickle.decode(msg)
             if obj.type == RecordType.COUNTER and obj.payload.valid == True:
                 print(
-                    f"Type: {obj.type} timestamp: {obj.timestamp} payloads: {repr(obj.payload)}")
+                    f"Package No.: {obj.packageNumber} Type: {obj.type} timestamp: {obj.timestamp} payloads: {repr(obj.payload)}")
                 #print(f"date: {datetime.fromtimestamp(obj.timestamp)}")
                 cntRec = obj.payload
                 if self.prev_rates is None:

@@ -13,7 +13,7 @@ class RecordAdapter(Document):
     meta = {
         'collection': 'records'
     }
-
+    packageNumber = IntField()
     type = StringField(choices=CHOICES)
     timestamp = DateTimeField()
     payload_cnt = EmbeddedDocumentField(CountRecordAdapter)
@@ -30,14 +30,14 @@ class RecordAdapter(Document):
     @staticmethod
     def get(rec):
         if rec.type == RecordType.COUNTER:
-            return RecordAdapter(type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
+            return RecordAdapter(packageNumber=rec.packageNumber, type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
                 rec.timestamp), payload_cnt=CountRecordAdapter.get(rec.payload))
         elif rec.type == RecordType.DATA:
-            return RecordAdapter(type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
+            return RecordAdapter(packageNumber=rec.packageNumber, type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
                 rec.timestamp), payload_dat=DataRecordAdapter.get(rec.payload))
         elif rec.type == RecordType.TEMPERATURE:
-            return RecordAdapter(type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
+            return RecordAdapter(packageNumber=rec.packageNumber, type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
                 rec.timestamp), payload_tem=TemperatureRecordAdapter.get(rec.payload))
         elif rec.type == RecordType.PRESSURE:
-            return RecordAdapter(type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
+            return RecordAdapter(packageNumber=rec.packageNumber, type=CHOICES[int(rec.type)], timestamp=datetime.fromtimestamp(
                 rec.timestamp), payload_prs=PressureRecordAdapter.get(rec.payload))

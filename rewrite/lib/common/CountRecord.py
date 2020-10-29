@@ -15,9 +15,9 @@ class CountRecord():
         else:
             self.valid = False
             return
-        if not msg.startswith('DS'):    
+        if not msg.startswith('DS'):
             self.valid = False
-            return 
+            return
 
         for item in counter_from_msg:
             if ("S0" in item) & (len(item) == 11):
@@ -34,19 +34,20 @@ class CountRecord():
                 self.counters_time = float(int(item[3:], 16))
     # def __str__(self):
     #     return f"ch0: {self.counts_ch0} ch1: {self.counts_ch1} ch2: {self.counts_ch2} ch3: {self.counts_ch3} trigger: {self.counts_trigger} time: {self.counters_time}"
-    
+
     def __repr__(self):
         if not self.valid:
             return ""
         try:
             return f"ch0: {self.counts_ch0} ch1: {self.counts_ch1} ch2: {self.counts_ch2} ch3: {self.counts_ch3} trigger: {self.counts_trigger} time: {self.counters_time}"
-        except: 
+        except:
             print(f"__repr__ error msg was: {self.msg_bak}")
-            raise IOError 
+            raise IOError
 
     __str__ = __repr__
 
 
 if __name__ == "__main__":
-    c = CountRecord("DS S0=00000000 S1=00000000 S2=00000000 S3=00000000 S4=00000000 S5=18531FFD")
+    c = CountRecord(
+        "DS S0=00000000 S1=00000000 S2=00000000 S3=00000000 S4=00000000 S5=18531FFD")
     print(repr(c))

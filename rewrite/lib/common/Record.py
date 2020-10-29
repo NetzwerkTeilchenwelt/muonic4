@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
-class RecordType(Enum):
+
+class RecordType(IntEnum):
     """
     Enum of the possible types of Records between DAQ and analysis.
     Enum for "type-safety"

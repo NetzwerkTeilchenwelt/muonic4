@@ -3,8 +3,9 @@ import serial
 from .getDevice import get_Device
 from time import sleep
 
+
 class DAQConnection(object):
-    
+
     """
     DAQ Connection class.
 
@@ -18,7 +19,7 @@ class DAQConnection(object):
     """
 
     def __init__(self, in_queue, out_queue, logger=None):
-        if logger is None: 
+        if logger is None:
             logger = logging.getLogger()
         self.logger = logger
         self.running = 1
@@ -44,7 +45,7 @@ class DAQConnection(object):
         connected = False
         serial_port = None
 
-        while not connected: 
+        while not connected:
             dev = "/dev/" + get_Device()
 
             self.logger.info(f"DAQ Card found at {dev}")
@@ -61,7 +62,7 @@ class DAQConnection(object):
                 sleep(5)
         self.logger.info("Successfully connected to DAQ card")
         return serial_port
-    
+
     def read(self):
         """
         Gets Data from the DAQ card. Read it from the provided queue.
@@ -69,8 +70,8 @@ class DAQConnection(object):
         :returns: None
         """
 
-        min_sleep_time = 0.01 #seconds
-        max_sleep_time = 0.2  #seconds
+        min_sleep_time = 0.01  # seconds
+        max_sleep_time = 0.2  # seconds
         sleep_time = min_sleep_time  # seconds
 
         while self.running:
@@ -86,7 +87,7 @@ class DAQConnection(object):
                 self.logger.error("IOError")
                 self.serial_port.close()
                 self.serial_port = self.get_serial_port()
-        
+
     def write(self):
         """
         Writes messages from the in queue to the DAQ card
@@ -106,7 +107,8 @@ class DAQConnection(object):
                 self.logger.debug("Running macOS version of muonic")
                 while True:
                     try:
-                        out_str = str(self.in_queue.get(timeout=0.01)) + str("\r")
+                        out_str = str(self.in_queue.get(
+                            timeout=0.01)) + str("\r")
                         self.serial_port.write(out_str.encode("ascii"))
                     except (queue.Empty, serial.SerialTimeoutException):
                         pass

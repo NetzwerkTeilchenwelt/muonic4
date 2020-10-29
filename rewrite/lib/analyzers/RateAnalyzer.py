@@ -12,18 +12,18 @@ from datetime import datetime
 from time import time, sleep
 import threading
 import queue
- 
+
 
 class RateAnalyzer():
     def __init__(self, logger=None):
-        if logger is None: 
+        if logger is None:
             logger = logging.getLogger()
         self.logger = logger
 
         self.ctx = zmq.Context()
         self.sock = self.ctx.socket(zmq.SUB)
         self.sock.connect("tcp://127.0.0.1:1234")
-        self.sock.subscribe("") # Subscribe to all topics
+        self.sock.subscribe("")  # Subscribe to all topics
         self.server = xmlrpc.client.ServerProxy("http://localhost:5556")
         self.server.setup_channel(True, True, True, True, 'threefold')
         self.server.set_threashold(110, 110, 180, 110)
@@ -37,14 +37,14 @@ class RateAnalyzer():
 
         self.pressure = 99
         self.temperature = 20
-    
+
     def fileWriter(self):
-            with open(self.filename, 'a') as f:
-                while True:
-                    item = self.outQueue.get()
-                    f.write(item)
-                    f.write('\n')
-                    f.flush()
+        with open(self.filename, 'a') as f:
+            while True:
+                item = self.outQueue.get()
+                f.write(item)
+                f.write('\n')
+                f.flush()
 
     def write_rates_to_file(self, firstline=False):
         """
@@ -53,40 +53,43 @@ class RateAnalyzer():
         if firstline:
             self.logger.info(
                 'Starting to write data to file %s' % self.filename)
-            self.outQueue.put(" date | time | R0 | R1 | R2 | R3 | R_trigger | chan0 | chan1 | chan2 | chan3 | trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
-
+            self.outQueue.put(
+                " date | time | R0 | R1 | R2 | R3 | R_trigger | chan0 | chan1 | chan2 | chan3 | trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
 
     def runDaemon(self):
         while True:
             msg = self.sock.recv_string()
             obj = jsonpickle.decode(msg)
             if obj.type == RecordType.COUNTER and obj.payload.valid == True:
-                print(f"Type: {obj.type} timestamp: {obj.timestamp} payloads: {repr(obj.payload)}")
+                print(
+                    f"Type: {obj.type} timestamp: {obj.timestamp} payloads: {repr(obj.payload)}")
                 #print(f"date: {datetime.fromtimestamp(obj.timestamp)}")
                 cntRec = obj.payload
                 if self.prev_rates is None:
-                    self.prev_rates = np.array([cntRec.counts_ch0, cntRec.counts_ch1, cntRec.counts_ch2, cntRec.counts_ch3, cntRec.counts_trigger])
+                    self.prev_rates = np.array(
+                        [cntRec.counts_ch0, cntRec.counts_ch1, cntRec.counts_ch2, cntRec.counts_ch3, cntRec.counts_trigger])
                     self.previous_time = datetime.fromtimestamp(obj.timestamp)
-                else: 
-                    curRates = np.array([cntRec.counts_ch0, cntRec.counts_ch1, cntRec.counts_ch2, cntRec.counts_ch3, cntRec.counts_trigger])
+                else:
+                    curRates = np.array([cntRec.counts_ch0, cntRec.counts_ch1,
+                                         cntRec.counts_ch2, cntRec.counts_ch3, cntRec.counts_trigger])
                     current_time = datetime.fromtimestamp(obj.timestamp)
-                    self.delta_time = (current_time - self.previous_time).total_seconds()
+                    self.delta_time = (
+                        current_time - self.previous_time).total_seconds()
                     self.previous_time = current_time
 
                     deltaRates = curRates - self.prev_rates
                     self.prev_rates = curRates
                     deltaRates = deltaRates / self.delta_time
-                    if self.dateandtime is None: 
+                    if self.dateandtime is None:
                         self.dateandtime = datetime.now()
-                    
-                    self.outQueue.put(f"{self.dateandtime} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {self.delta_time} {self.current_pressure} {self.temperature}")
+
+                    self.outQueue.put(
+                        f"{self.dateandtime} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {self.delta_time} {self.current_pressure} {self.temperature}")
             elif obj.type == RecordType.PRESSURE and obj.payload.valid == True and obj.payload.pressure_type == PressureType.MBAR:
-                    self.current_pressure = obj.payload.pressure
+                self.current_pressure = obj.payload.pressure
             elif obj.type == RecordType.TEMPERATURE and obj.payload.valid == True:
                 self.temperature = obj.payload.temperature
-                    #print(f"{self.dateandtime} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]}")
-
-
+                #print(f"{self.dateandtime} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]}")
 
     def measure_rates(self, timewindow=5.0, meastime=None):
         """
@@ -98,7 +101,7 @@ class RateAnalyzer():
             self.logger.info('Starting rate measurement. Rate is measured every %f seconds, total measurement time: %f min' % (
                 timewindow, meastime))
             self.server.setRunning(True)
-            
+
             self.write_rates_to_file(firstline=True)
             self.server.reset_scalars()
             # x = threading.Thread(target=self.start_reading_data)
@@ -106,13 +109,13 @@ class RateAnalyzer():
             print("before reading data")
             self.server.start_reading_data()
             x = threading.Thread(target=self.runDaemon)
-            #x.start()
+            # x.start()
             print("after reading data")
 
             t = 0
             try:
                 while t < (meastime*60):
-                    #self.server.read_scalars()
+                    # self.server.read_scalars()
                     time_start = time()
                     sleep(timewindow)
                     self.server.read_scalars()
@@ -124,10 +127,10 @@ class RateAnalyzer():
                     self.server.get_temp_and_pressure()
                     sleep(0.5)
                     self.delta_time = time_end-time_start
-                    #self.server.calculate_rates()
-                    if not x.isAlive(): 
+                    # self.server.calculate_rates()
+                    if not x.isAlive():
                         x.start()
-                    #self.write_rates_to_file()
+                    # self.write_rates_to_file()
                     self.logger.info('Measurement progress: %f %%' %
                                      (100*t/(meastime*60)))
                     t += self.delta_time
@@ -171,7 +174,7 @@ class RateAnalyzer():
                     sleep(0.5)
                     self.server.get_temp_and_pressure()
                     self.delta_time = time_end-time_start
-                    
+
                     self.write_rates_to_file()
             except (KeyboardInterrupt, AttributeError, RuntimeError, NameError, SystemExit):
                 self.server.stop_reading_data()

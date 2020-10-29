@@ -15,14 +15,14 @@ class TemperatureRecord():
         else:
             self.valid = False
             return
-        if not msg.startswith('TH'):  
-            self.valid = False  
-            return 
+        if not msg.startswith('TH'):
+            self.valid = False
+            return
 
         self.temperature = float(msg.split("=")[1])
 
     def __repr__(self):
-        if self.valid: 
+        if self.valid:
             return f"{self.temperature}"
         return ""
     __str__ = __repr__

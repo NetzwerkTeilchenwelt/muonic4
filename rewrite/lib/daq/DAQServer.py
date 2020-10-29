@@ -15,7 +15,7 @@ import jsonpickle
 class DAQServer(object):
     def __init__(self):
 
-        #process incoming data
+        # process incoming data
         self.countqueue = Queue()
         self.tempqueue = Queue()
         self.pressqueue = Queue()
@@ -38,18 +38,18 @@ class DAQServer(object):
         self.logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(levelname)s:%(process)d:%(module)s:%(funcName)s:%(lineno)d:%(message)s')
+        formatter = logging.Formatter(
+            '%(levelname)s:%(process)d:%(module)s:%(funcName)s:%(lineno)d:%(message)s')
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
 
-        #Connect to the DAQ card
+        # Connect to the DAQ card
         self.client = DAQProvider(logger=self.logger)
 
         # disable data flow for startup
         self.stop_reading_data()
         # disable status messages from the card
         self.do('ST 0')
-
 
     def do(self, msg):
         """
@@ -80,8 +80,7 @@ class DAQServer(object):
         self.do('CE')
         x = threading.Thread(target=self.process_incoming)
         x.start()
-        #self.process_incoming()
-        
+        # self.process_incoming()
 
     def stop_reading_data(self):
         """
@@ -91,7 +90,7 @@ class DAQServer(object):
         while self.client.data_available():
             self.client.get(0)
         self.logger.debug('Stopped reading data.')
-    
+
     def read_scalars(self):
         """
         Read the scalars of all channels.
@@ -133,7 +132,7 @@ class DAQServer(object):
         else:
             self.logger.error(
                 "Didn't find threashold setting in last 10 messanges coming from DAQ card. Something is wrong!")
-    
+
     def setup_channel(self, ch0=False, ch1=False, ch2=False, ch3=False, coincidence='single'):
         """
         Enable/Disable channels of the DAQ card and set coincidence settings.
@@ -180,7 +179,8 @@ class DAQServer(object):
             if self.tempqueue.qsize():
                 msg_temp = self.tempqueue.get(0)
                 tmpRec = TemperatureRecord(msg_temp)
-                rec = Record(RecordType.TEMPERATURE, datetime.now().timestamp(),tmpRec)
+                rec = Record(RecordType.TEMPERATURE,
+                             datetime.now().timestamp(), tmpRec)
                 self.socket.send_string(jsonpickle.encode(rec))
                 self.temperature = float(msg_temp.split("=")[1])
             else:
@@ -201,7 +201,8 @@ class DAQServer(object):
             self.do('TH')
             msg_temp = self.client.get(0).decode("ascii")
             tmpRec = TemperatureRecord(msg_temp)
-            rec = Record(RecordType.TEMPERATURE, datetime.now().timestamp(),tmpRec)
+            rec = Record(RecordType.TEMPERATURE,
+                         datetime.now().timestamp(), tmpRec)
             self.socket.send_string(jsonpickle.encode(rec))
             print(f"type: {type(msg_temp)}")
             if msg_temp.startswith('TH'):
@@ -213,7 +214,8 @@ class DAQServer(object):
             self.do('BA')
             msg_press = self.client.get(0).decode("ascii")
             presRec = PressureRecord(msg_press)
-            rec = Record(RecordType.PRESSURE, datetime.now().timestamp(),presRec)
+            rec = Record(RecordType.PRESSURE,
+                         datetime.now().timestamp(), presRec)
             self.socket.send_string(jsonpickle.encode(rec))
             if msg_press.startswith('BA'):
                 self.pressure = float(msg_press.split()[1])
@@ -238,7 +240,7 @@ class DAQServer(object):
         Check message for pressure information.
         """
         presRec = PressureRecord(msg)
-        rec = Record(RecordType.PRESSURE, datetime.now().timestamp(),presRec)
+        rec = Record(RecordType.PRESSURE, datetime.now().timestamp(), presRec)
         self.socket.send_string(jsonpickle.encode(rec))
         if msg.startswith('BA'):
             self.pressure = float(msg.split()[1])
@@ -292,30 +294,34 @@ class DAQServer(object):
                 except:
                     self.logger.debug('Queue empty!')
                     break
-                #print(msg)
+                # print(msg)
                 if msg.startswith('DS'):
                     if len(msg) >= 3:
                         cntRec = CountRecord(msg)
-                        rec = Record(RecordType.COUNTER, datetime.now().timestamp(),cntRec)
+                        rec = Record(RecordType.COUNTER,
+                                     datetime.now().timestamp(), cntRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.countqueue.put(msg)
                 elif msg.startswith('TH'):
                     if len(msg) >= 9:
                         tmpRec = TemperatureRecord(msg)
-                        rec = Record(RecordType.TEMPERATURE, datetime.now().timestamp(),tmpRec)
+                        rec = Record(RecordType.TEMPERATURE,
+                                     datetime.now().timestamp(), tmpRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.tempqueue.put(msg)
                 elif msg.startswith('BA') or msg.startswith('mBar'):
                     if len(msg) >= 4:
                         presRec = PressureRecord(msg)
-                        rec = Record(RecordType.PRESSURE, datetime.now().timestamp(),presRec)
+                        rec = Record(RecordType.PRESSURE,
+                                     datetime.now().timestamp(), presRec)
                         self.socket.send_string(jsonpickle.encode(rec))
                         self.pressqueue.put(msg)
                 elif msg.startswith('CD') or msg.startswith('CE'):
                     continue
                 else:
-                    rec = Record(RecordType.DATA, datetime.now().timestamp(),msg)
-                    #self.socket.send_string(jsonpickle.encode(rec))
+                    rec = Record(RecordType.DATA,
+                                 datetime.now().timestamp(), msg)
+                    # self.socket.send_string(jsonpickle.encode(rec))
                     self.dataqueue.put(msg)
             else:
                 sleep(0.2)
@@ -350,7 +356,7 @@ class DAQServer(object):
             elif ("S5" in item) & (len(item) == 11):
                 counters_time = float(int(item[3:], 16))
         cntRec = CountRecord(msg)
-        rec = Record(RecordType.COUNTER, datetime.now().timestamp(),cntRec)
+        rec = Record(RecordType.COUNTER, datetime.now().timestamp(), cntRec)
         self.socket.send_string(jsonpickle.encode(rec))
         return self.counts_ch0, self.counts_ch1, self.counts_ch2, self.counts_ch3, self.counts_trigger
 
@@ -386,12 +392,11 @@ class DAQServer(object):
                 queue.get(0)
         self.logger.debug('Finished clearing queues.')
 
-    
     def run(self):
         self.running = True
         self.x = threading.Thread(target=self.start_reading_data)
         self.x.start()
-    
+
     def stop(self):
         self.running = False
         self.x.stop()

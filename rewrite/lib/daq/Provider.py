@@ -6,13 +6,14 @@ from .Connection import DAQConnection
 
 from .Exceptions import DAQIOError, DAQMissingDependencyError
 
+
 class DAQProvider(object):
     """
     Class providing the public API and helpers for the communication with the DAQ card
     """
-    
+
     LINE_PATTERN = re.compile("^[a-zA-Z0-9+-.,:()=$/#?!%_@*|~' ]*[\n\r]*$")
-    
+
     def __init__(self, logger=None):
         if logger is None:
             logger = logging.getLogger()
@@ -63,7 +64,7 @@ class DAQProvider(object):
     def data_available(self):
         """
         Tests if data is available from the DAQ card.
-        
+
         :returns: int or bool
         """
         try:
@@ -72,10 +73,6 @@ class DAQProvider(object):
             self.logger.debug("Running macOS version of muonic")
             size = not self.out_queue.empty()
         return size
-
-
-
-
 
     def validate_line(self, line):
         """

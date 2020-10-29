@@ -7,8 +7,8 @@ def get_Device():
     :returns: name of the device file in /dev/ or ttyUSB0 by default
     """
     with open("/var/log/syslog", "r") as f:
-        for line in f: 
-            if "cp210x" in line and "now attached to" in line: 
+        for line in f:
+            if "cp210x" in line and "now attached to" in line:
                 return line.split()[-1]
 
-    return "ttyUSB0"            
+    return "ttyUSB0"

@@ -32,8 +32,8 @@ class Skyview():
 
         # setup connection to QuarkNET card, enable communication
         self.client = DAQProvider(logger=self.logger)
-        #self.get_gps_info()
-        #self.get_temp_and_pressure()
+        # self.get_gps_info()
+        # self.get_temp_and_pressure()
         # disable data flow for startup
         self.stop_reading_data()
         # disable status message
@@ -265,7 +265,7 @@ class Skyview():
                 except:
                     self.logger.debug('Queue empty!')
                     break
-                #print(msg)
+                # print(msg)
                 if msg.startswith('DS'):
                     if len(msg) >= 3:
                         self.countqueue.put(msg)

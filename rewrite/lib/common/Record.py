@@ -19,6 +19,7 @@ class Record(object):
 
     VERY EARLY STAGE! Everything is subject to change!
 
+    :param packageNumber: A sequential number of all packages send by a DAQ server
     :param RecType: Type of the record
     :param timestamp: Unixtimestamp
     :param payload: Payload to be send 

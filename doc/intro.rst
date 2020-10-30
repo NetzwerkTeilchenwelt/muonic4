@@ -7,4 +7,4 @@ Its goal is to ensure easy and stable access to the QuarkNet cards and visualize
 Licence and terms of agreement
 -------------------------------
 
-Muonic is ditributed under the terms of GPL (Gnu Public License). With the use of the software you accept the condidions of the GPL. This means also that the authors can not be made responsible for any damage of any kind to hard- or software.
+Muonic is ditributed under the terms of GPL (GNU Public License). With the use of the software you accept the condidions of the GPL. This means also that the authors can not be made responsible for any damage of any kind to hard- or software.

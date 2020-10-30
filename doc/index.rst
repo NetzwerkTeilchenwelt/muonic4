@@ -1,5 +1,5 @@
 .. Muonic documentation master file, created by
-   sphinx-quickstart on Tue Jul 14 15:26:54 2020.
+   sphinx-quickstart on Fri Oct 30 09:16:05 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -10,16 +10,13 @@ Welcome to Muonic's documentation!
    :maxdepth: 4
    :caption: Contents:
 
-   :caption: Non Software:
+   :caption: Muonic 4:
    intro
    setup
    tutorial
    hardware
-   muonic
 
-   :caption: Software:
-   muonic3
-   headless_muonic
+   rewrite
 
 
 Indices and tables

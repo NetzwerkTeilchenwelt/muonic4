@@ -10,9 +10,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, '/Users/benedikt/src/muonic4/src')
+import os
+import sys
+sys.path.insert(0, '..')
+sys.path.insert(1, '../rewrite')
 
 
 # -- Project information -----------------------------------------------------
@@ -20,7 +21,7 @@
 project = 'Muonic'
 copyright = '2020, Netzwerkteilchenwelt'
 author = 'Netzwerkteilchenwelt'
-version = '4.0.0'
+
 
 # -- General configuration ---------------------------------------------------
 
@@ -37,7 +38,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinxcontrib.napoleon',
+    'sphinxcontrib.napoleon'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

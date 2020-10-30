@@ -1,10 +1,16 @@
 from lib.daq.DAQServer import DAQServer
 
-sk = DAQServer()
 
-sk.setup_channel(ch0=True, ch1=True, ch2=True,
-                 ch3=True, coincidence='threefold')
+def run():
+    sk = DAQServer()
 
-sk.set_threashold(th_0=110, th_1=110, th_2=180, th_3=110)
+    sk.setup_channel(ch0=True, ch1=True, ch2=True,
+                     ch3=True, coincidence='threefold')
 
-sk.measure_rates(timewindow=10.0, meastime=1.0)
+    sk.set_threashold(th_0=110, th_1=110, th_2=180, th_3=110)
+
+    sk.measure_rates(timewindow=10.0, meastime=1.0)
+
+
+if __name__ == "__main__":
+    run()

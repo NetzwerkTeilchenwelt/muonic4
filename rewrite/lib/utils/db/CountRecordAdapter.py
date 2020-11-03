@@ -3,6 +3,9 @@ from mongoengine import BooleanField, EmbeddedDocument, DecimalField, IntField
 
 
 class CountRecordAdapter(EmbeddedDocument):
+    """
+    Adapter class to store Counts in MongoDB
+    """
     valid = BooleanField()
     counts_ch0 = IntField()
     counts_ch1 = IntField()
@@ -13,6 +16,11 @@ class CountRecordAdapter(EmbeddedDocument):
 
     @staticmethod
     def get(rec):
+        """
+        Creates a CountRecordAdapter from a CountRecord
+
+        :param rec: CountRecord to convert
+        """
         return CountRecordAdapter(valid=rec.valid,
                                   counts_ch0=rec.counts_ch0,
                                   counts_ch1=rec.counts_ch1,
@@ -21,7 +29,12 @@ class CountRecordAdapter(EmbeddedDocument):
                                   counts_trigger=rec.counts_trigger,
                                   counters_time=rec.counters_time)
 
-    def set(self):
+    def createCount(self):
+        """
+        Creates a CountRecord from the current object
+
+        :returns: CountRecord from the current CountRecordAdapter
+        """
         rec = CountRecord("")
         rec.valid = self.valid
         rec.counts_ch0 = self.counts_ch0

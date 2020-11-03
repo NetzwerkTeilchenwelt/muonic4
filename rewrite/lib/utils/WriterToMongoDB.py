@@ -18,6 +18,10 @@ import queue
 
 
 class WriterToMongoDB():
+    """
+    Writes incoming data to the MongoDB for storage
+    """
+
     def __init__(self, logger=None):
         if logger is None:
             logger = logging.getLogger()

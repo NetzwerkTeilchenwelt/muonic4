@@ -5,6 +5,12 @@ class CountRecord():
 
     incoming format:
     DS S0=00000000 S1=00000000 S2=00000000 S3=00000000 S4=00000000 S5=18531FFD
+
+
+    :param valid (Bool): validity of the record. Will be set to True if the message starts with 'DS'
+    :param counts_ch[X] (int): Counts in channel X
+    :param counts_trigger (int): trigger counts recieved
+    :param counts_time (Real): the time of the record
     """
 
     def __init__(self, msg):

@@ -5,6 +5,9 @@ class TemperatureRecord():
     Holds Temperature information
 
     incoming format: TH TH=22.2
+
+    :param valid (Bool): Validity of the record. Set to True, if the message starts with 'TH'
+    :param temperature (Real): The temperature of the record.
     """
 
     def __init__(self, msg):

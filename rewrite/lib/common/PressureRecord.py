@@ -16,6 +16,9 @@ class PressureRecord():
     incoming format: 'BA 1495'
     or: "mBar now reads  = 1015.0  (use cmd 'SA' when done)"
 
+    :param valid (Bool): Validity of the record. Set to True, if the message starts with 'BA'
+    :param pressure (Real): Floating point value of in the pressure record
+    :param pressure_type (PressureType): Either mBar or plain data
     """
 
     def __init__(self, msg):

@@ -13,7 +13,10 @@ class ReaderFromMongoDB(object):
     Inits the MongoDB connection and the zeromq socket. This needs to start before any analysis.
     """
 
-    def __init__(self):
+    def __init__(self, logger=None):
+        if logger is None:
+            logger = logging.getLogger()
+        self.logger = logger
         # connect to MongoDB
         connect('muonic', host='localhost', port=27017,
                 username="root", password="muonic", authentication_source='admin')
@@ -48,31 +51,32 @@ class ReaderFromMongoDB(object):
         """
         Fake function. Just for API compatibility
         """
-        print(f"Setting up fake channel: {ch0, ch1, ch2, ch3, coincidence}")
+        self.logger.debug(
+            f"Setting up fake channel: {ch0, ch1, ch2, ch3, coincidence}")
 
     def set_threashold(self, ch0, ch1, ch2, ch3):
         """
         Fake function. Just for API compatibility
         """
-        print(f"setting fake threshold: {ch0, ch1, ch2, ch3}")
+        self.logger.debug(f"setting fake threshold: {ch0, ch1, ch2, ch3}")
 
     def setRunning(self, state):
         """
         Fake function. Just for API compatibility
         """
-        print(f"setting fake running: {state}")
+        self.logger.debug(f"setting fake running: {state}")
 
     def reset_scalars(self):
         """
         Fake function. Just for API compatibility
         """
-        print("resettig fake scalars")
+        self.logger.debug("resettig fake scalars")
 
     def start_reading_data(self):
         """
         Fake function. Just for API compatibility
         """
-        print("starting to send data")
+        self.logger.debug("starting to send data")
         x = threading.Thread(target=self.run)
         x.setDaemon(True)
         x.start()
@@ -81,28 +85,28 @@ class ReaderFromMongoDB(object):
         """
         Fake function. Just for API compatibility
         """
-        print("reading fake scalars")
+        self.logger.debug("reading fake scalars")
 
     def do(self, arg):
         """
         Fake function. Just for API compatibility
         """
-        print(f"Doing fake {arg}")
+        self.logger.debug(f"Doing fake {arg}")
 
     def get_temp_and_pressure(self):
         """
         Fake function. Just for API compatibility
         """
-        print("getting fake temp and pressure")
+        self.logger.debug("getting fake temp and pressure")
 
     def clear_queues(self):
         """
         Fake function. Just for API compatibility
         """
-        print("clearing non existing queues")
+        self.logger.debug("clearing non existing queues")
 
     def stop_reading_data(self):
         """
         Fake function. Just for API compatibility
         """
-        print("stopping reading fake data")
+        self.logger.debug("stopping reading fake data")

@@ -24,8 +24,6 @@ class RecordAdapter(Document):
     :param payload_prs: Pressure Payload
 
     Sadly the payload for each type of payload needs to be in a separate field, as we need an EmbeddedDocumentField of a certain type.
-
-
     """
     meta = {
         'collection': 'records'
@@ -93,16 +91,16 @@ class RecordAdapter(Document):
             recType = RecordType.CONTROL
         elif self.type == 'DATA':
             recType = RecordType.DATA
-            recPayload = self.payload_dat.set()
+            recPayload = self.payload_dat.createData()
         elif self.type == 'TEMPERATURE':
             recType = RecordType.TEMPERATURE
-            recPayload = self.payload_tem.set()
+            recPayload = self.payload_tem.createTemperature()
         elif self.type == 'PRESSURE':
             recType = RecordType.PRESSURE
-            recPayload = self.payload_prs.set()
+            recPayload = self.payload_prs.createPressure()
         elif self.type == 'COUNTER':
             recType = RecordType.COUNTER
-            recPayload = self.payload_cnt.set()
+            recPayload = self.payload_cnt.createCount()
 
         recPackageNumber = self.packageNumber
         recTimestamp = self.timestamp.timestamp()

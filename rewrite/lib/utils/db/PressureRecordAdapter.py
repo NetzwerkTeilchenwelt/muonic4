@@ -29,7 +29,7 @@ class PressureRecordAdapter(EmbeddedDocument):
             t = "MBAR"
         return PressureRecordAdapter(valid=rec.valid, pressure=rec.pressure, pressure_type=t)
 
-    def set(self):
+    def createPressure(self):
         """
         Converts the current object to a PressureRecord
 

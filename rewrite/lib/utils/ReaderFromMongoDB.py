@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from .db.RecordAdapter import RecordAdapter
 import jsonpickle
 import threading
+import logging
 
 
 class ReaderFromMongoDB(object):

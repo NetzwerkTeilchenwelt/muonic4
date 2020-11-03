@@ -22,7 +22,7 @@ class TemperatureRecordAdapter(EmbeddedDocument):
         return TemperatureRecordAdapter(
             valid=rec.valid, temperature=rec.temperature)
 
-    def set(self):
+    def createTemperature(self):
         """
         Converts the current object to a TemperatureRecord
 

@@ -143,3 +143,7 @@ cython_debug/s
 #Sphinx docu
 doc/locale
 doc/_build
+
+#local MongoDB Data
+utils/mongoDB/data/*
+!utils/mongoDB/data/.keepdir

@@ -1,9 +1,6 @@
-from mongoengine import Document, StringField, BooleanField
 
-
-class DataRecord(Document):
-    valid = BooleanField(default=True)
-    msg = StringField
+class DataRecord():
+    msg = ""
 
     def __init__(self, msg):
         self.msg = msg

@@ -1,5 +1,5 @@
 from mongoengine import BooleanField, EmbeddedDocument, StringField, DecimalField
-from ...common.PressureRecord import PressureType
+from ...common.PressureRecord import PressureType, PressureRecord
 
 
 class PressureRecordAdapter(EmbeddedDocument):
@@ -15,3 +15,14 @@ class PressureRecordAdapter(EmbeddedDocument):
         else:
             t = "MBAR"
         return PressureRecordAdapter(valid=rec.valid, pressure=rec.pressure, pressure_type=t)
+
+    def set(self):
+        rec = PressureRecord("")
+        if self.pressure_type == "PLAIN":
+            rec.pressure_type = PressureType.PLAIN
+        else:
+            rec.pressure_type = PressureType.MBAR
+
+        rec.valid = self.valid
+        rec.pressure = self.pressure
+        return rec

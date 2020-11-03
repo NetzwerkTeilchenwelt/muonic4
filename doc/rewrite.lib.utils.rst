@@ -20,6 +20,14 @@ rewrite.lib.utils.WriterToMongoDB module
    :undoc-members:
    :show-inheritance:
 
+rewrite.lib.utils.ReaderFromMongoDB module
+----------------------------------------
+
+.. automodule:: rewrite.lib.utils.ReaderFromMongoDB
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

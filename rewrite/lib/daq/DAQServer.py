@@ -8,6 +8,7 @@ from ..common.Record import Record, RecordType
 from ..common.CountRecord import CountRecord
 from ..common.TemperatureRecord import TemperatureRecord
 from ..common.PressureRecord import PressureRecord, PressureType
+from ..common.DataRecord import DataRecord
 import zmq
 import jsonpickle
 
@@ -327,8 +328,9 @@ class DAQServer(object):
                 elif msg.startswith('CD') or msg.startswith('CE'):
                     continue
                 else:
+                    dataRec = DataRecord(msg)
                     rec = Record(self.package_number, RecordType.DATA,
-                                 datetime.now().timestamp(), msg)
+                                 datetime.now().timestamp(), dataRec)
                     self.package_number += 1
                     self.socket.send_string(jsonpickle.encode(rec))
                     # self.dataqueue.put(msg)

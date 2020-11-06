@@ -20,6 +20,7 @@ class RateAnalyzer():
             logger = logging.getLogger()
         self.logger = logger
 
+        # Setup the communication with the data well
         self.ctx = zmq.Context()
         self.sock = self.ctx.socket(zmq.SUB)
         self.sock.connect("tcp://127.0.0.1:1234")
@@ -27,7 +28,7 @@ class RateAnalyzer():
         self.server = xmlrpc.client.ServerProxy("http://localhost:5556")
         self.server.setup_channel(True, True, True, True, 'threefold')
         self.server.set_threashold(110, 110, 180, 110)
-       # self.server.get_gps_info()
+        # self.server.get_gps_info()
         self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.filename = self.starttime+"_R.txt"
         #self.file = open(self.filename, 'a')

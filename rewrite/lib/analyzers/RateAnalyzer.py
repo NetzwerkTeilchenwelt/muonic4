@@ -15,6 +15,10 @@ import queue
 
 
 class RateAnalyzer():
+    """
+    Class that manages the measurement of muon rate. 
+    """
+
     def __init__(self, logger=None):
         if logger is None:
             logger = logging.getLogger()

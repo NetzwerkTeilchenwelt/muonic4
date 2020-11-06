@@ -11,6 +11,10 @@ from ..common.DataRecord import DataRecord
 
 
 class PulseAnalyzer():
+    """
+    Class that manages the measurement of pulses from the DAQ card.
+    """
+
     def __init__(self, logger=None):
         if logger is None:
             logger = logging.getLogger()

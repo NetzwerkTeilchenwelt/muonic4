@@ -181,14 +181,17 @@ class PulseExtractor:
                 # add the virtual falling edge if necessary
                 try:
                     fe = self.last_fe[ch][index]
+                    print(
+                        f"ch:{ch} index: {index} re:{re} fe:{fe} last_fe:{self.last_fe}")
                     if fe < re:
                         fe = MAX_TRIGGER_WINDOW
                 except IndexError:
                     fe = MAX_TRIGGER_WINDOW
 
                 pulses[ch].append((re, fe))
-
+            print(f"CH[{ch}]-> pulses: {pulses}")
             pulses[ch] = sorted(pulses[ch])
+            print(f"CH[{ch}]-> pulses sorted: {pulses}")
 
             # self.pulses[ch] = [(re,fe) for re,fe in self.last_re[ch],
             #                    self.last_fe[ch])
@@ -261,7 +264,7 @@ class PulseExtractor:
                 self.calculated_frequency = ((one_pps - self.last_one_pps_poll) /
                                              float(self.passed_one_pps))
                 self.passed_one_pps = 0
-                self.last_one_pps_poll = one_pps
+                self.last_one_pps_poll = 2
 
                 # check if calculated_frequency is sane,
                 # assuming the daq frequency is somewhat stable

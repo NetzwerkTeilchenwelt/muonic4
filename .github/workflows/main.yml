@@ -20,7 +20,7 @@ jobs:
     #   working-directory: ./backend
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-10.15, macos-11.0]
+        os: [ubuntu-latest, macos-latest, ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-10.15, macos-11.0]
         python-version: [3.7, 3.8]
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -43,6 +43,6 @@ jobs:
           pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov=coveralls --cov-report=xml --cov-report=html
       - name: Upload to coveralls
         run: |
-          coveralls
+          COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }} coveralls
      
         

@@ -41,6 +41,8 @@ jobs:
         run: |
           cd rewrite 
           pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+      - name: Upload to coveralls
+        run: |
           COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }}coveralls
      
         

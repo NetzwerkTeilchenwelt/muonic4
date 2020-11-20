@@ -34,8 +34,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest pytest-cov
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      # - name: Super-Linter
-      #   uses: docker://github/super-linter:v3
+      - name: Super-Linter
+        uses: docker://github/super-linter:v3
       - name: Test with pytest
         run: |
           cd rewrite; pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html

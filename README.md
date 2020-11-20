@@ -2,6 +2,7 @@
 [![Documentation Status](https://readthedocs.org/projects/muonic/badge/?version=latest)](https://muonic.readthedocs.io/en/latest/?badge=latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![CI](https://github.com/NetzwerkTeilchenwelt/muonic4/workflows/CI/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/NetzwerkTeilchenwelt/muonic4/badge.svg?branch=master)](https://coveralls.io/github/NetzwerkTeilchenwelt/muonic4?branch=master)
 
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
 Sill in very early development.

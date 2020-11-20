@@ -33,14 +33,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest pytest-cov python-coveralls
+          pip install flake8 pytest pytest-cov python-coveralls coverage==4.5.4
           pip install -r requirements.txt
       # - name: Super-Linter
       #   uses: docker://github/super-linter:v3
       - name: Test with pytest
         run: |
           cd rewrite 
-          pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov=coveralls --cov-report=xml --cov-report=html
       - name: Upload to coveralls
         run: |
           COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }} coveralls

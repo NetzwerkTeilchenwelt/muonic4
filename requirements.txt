@@ -49,5 +49,3 @@ tornado
 urllib3
 wrapt
 zipp
-zmq
-

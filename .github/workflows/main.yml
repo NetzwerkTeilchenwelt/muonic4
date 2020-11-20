@@ -44,9 +44,11 @@ jobs:
           cd rewrite 
           pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov=coveralls --cov-report=xml --cov-report=html
       - name: Upload to coveralls
+        shell: bash
+        env: 
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
-          export 
-          COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }} coveralls
+          coveralls
       - name: Start SSH session
         uses: luchihoratiu/debug-via-ssh@main
         with:

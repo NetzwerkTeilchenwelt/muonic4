@@ -33,7 +33,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        working-directory: ./rewrite
+
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest pytest-cov python-coveralls coverage==4.5.4
@@ -42,11 +42,11 @@ jobs:
       #   uses: docker://github/super-linter:v3
       - name: Test with pytest
         shell: bash
-        working-directory: ./rewrite
+        
         env: 
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
-          pytest test --doctest-modules --cov --cov-append
+          pytest rewrite/test --doctest-modules --cov --cov-append
           export COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }}
           COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }} coveralls
   

@@ -47,24 +47,34 @@ jobs:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
           pytest rewrite/test --doctest-modules --cov --cov-append
-          
-  
-      # - name: Start SSH session
-      #   uses: luchihoratiu/debug-via-ssh@main
-      #   with:
-      #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-      #     SSH_PASS: ${{ secrets.SSH_PASS }}
+        
+      
+        
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest pytest-cov  coverage
+          pip install -r requirements.txt
+      # - name: Super-Linter
+      #   uses: docker://github/super-linter:v3
+      - name: Test with pytest
+        shell: bash
+        
+        env: 
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        run: |
+          pytest rewrite/test --doctest-modules --cov --cov-append
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
         with:
-          parallel: true
+          parallel: false
           flag-name: Unit Test
-        
-  coveralls_finish:
-    needs: muonic
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel-finished: true

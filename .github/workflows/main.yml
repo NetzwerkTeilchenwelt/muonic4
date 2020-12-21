@@ -45,20 +45,13 @@ jobs:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
           cd rewrite 
-          pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov=coveralls --cov-report=xml --cov-report=html --cov-append
-          coveralls
-          echo $COVERALLS_REPO_TOKEN
-          ls -als .coverage
+          pytest test --doctest-modules --cov --cov-append
+          export COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }}
+          COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }} coveralls
   
       # - name: Start SSH session
       #   uses: luchihoratiu/debug-via-ssh@main
       #   with:
       #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
       #     SSH_PASS: ${{ secrets.SSH_PASS }}
-      - name: coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: rewrite/coverage.xml
-     
         

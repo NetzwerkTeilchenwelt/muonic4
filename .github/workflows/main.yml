@@ -16,8 +16,8 @@ jobs:
   muonic:
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
-    env:
-      working-directory: ./rewrite
+    # env:
+    #   working-directory: ./backend
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-10.15, macos-11.0]
@@ -29,10 +29,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
-        working-directory: ./rewrite
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+        working-directory: ./rewrite
       - name: Install dependencies
         working-directory: ./rewrite
         run: |
@@ -67,12 +67,10 @@ jobs:
   finish:
     needs: muonic
     runs-on: ubuntu-latest
-    working-directory: ./rewrite
-    env:
-      working-directory: ./rewrite
     steps:
     - name: Coveralls Finished
       uses: coverallsapp/github-action@master
+      working-directory: ./rewrite
       with:
         github-token: ${{ secrets.github_token }}
         parallel-finished: true

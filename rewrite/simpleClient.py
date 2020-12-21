@@ -12,7 +12,7 @@ def reciever_loop():
     sock = ctx.socket(zmq.SUB)
     sock.connect("tcp://127.0.0.1:1234")
     sock.subscribe("")  # Subscribe to all topics
-    print("Starting receiver loop ...")
+    print("Starting receiver loop... Quit with CTRL-C")
     while True:
         msg = sock.recv_string()
         obj = jsonpickle.decode(msg)

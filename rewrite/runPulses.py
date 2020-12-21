@@ -3,9 +3,10 @@ from lib.analyzers.PulseAnalyzer import PulseAnalyzer
 
 def run():
     """
-    Creates an instance of RateAnalyzer and runs a simple rate measurement.
+    Creates an instance of PulseAnalyzer and runs a simple pulse measurement.
     """
     r = PulseAnalyzer()
+    print("Starting pulse analysis. When done quit with CTRL-C.")
     r.measure_pulses(meastime=1.0)
 
 

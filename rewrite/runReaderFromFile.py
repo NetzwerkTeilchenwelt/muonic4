@@ -11,8 +11,9 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 
 def run():
     """
-    Starts an instance of the DAQ server with xmlrpc enabled and then enters an infinite loop
+    Starts an instance of the DAQ server with xmlrpc enabled and then enters an infinite loop and provides data on request
     """
+    print("Starting Reader from file. When done quit with CTRL-C.")
     with SimpleXMLRPCServer(('localhost', 5556), requestHandler=RequestHandler, allow_none=True) as server:
         server.register_introspection_functions()
         server.register_instance(ReaderFromFile("test_data.txt"))

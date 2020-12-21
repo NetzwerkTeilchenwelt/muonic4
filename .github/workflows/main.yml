@@ -32,7 +32,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-        working-directory: ./rewrite
       - name: Install dependencies
         working-directory: ./rewrite
         run: |
@@ -56,21 +55,17 @@ jobs:
       #   with:
       #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
       #     SSH_PASS: ${{ secrets.SSH_PASS }}
-      - name: Coveralls Parallel
-        uses: coverallsapp/github-action@master
-        working-directory: ./rewrite
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
         with:
-          github-token: ${{ secrets.github_token }}
-          flag-name: run-${{ matrix.test_number }}
           parallel: true
+          flag-name: Unit Test
         
-  finish:
+  coveralls_finish:
     needs: muonic
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
-      working-directory: ./rewrite
+      uses: AndreMiras/coveralls-python-action@develop
       with:
-        github-token: ${{ secrets.github_token }}
         parallel-finished: true

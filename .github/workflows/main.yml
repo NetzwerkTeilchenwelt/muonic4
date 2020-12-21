@@ -16,8 +16,8 @@ jobs:
   muonic:
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
-    # env:
-    #   working-directory: ./backend
+    env:
+      working-directory: ./rewrite
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-10.15, macos-11.0]
@@ -44,7 +44,6 @@ jobs:
         env: 
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |
-          cd rewrite 
           pytest test --doctest-modules --cov --cov-append
           export COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }}
           COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }} coveralls
@@ -64,6 +63,8 @@ jobs:
   finish:
     needs: muonic
     runs-on: ubuntu-latest
+    env:
+      working-directory: ./rewrite
     steps:
     - name: Coveralls Finished
       uses: coverallsapp/github-action@master

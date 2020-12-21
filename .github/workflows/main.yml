@@ -55,10 +55,9 @@ jobs:
       #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
       #     SSH_PASS: ${{ secrets.SSH_PASS }}
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
-          github-token: ${{ secrets.github_token }}
           flag-name: Unit Test
         
   coveralls_finish:
@@ -66,7 +65,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
+      uses: AndreMiras/coveralls-python-action@develop
       with:
-        github-token: ${{ secrets.github_token }}
         parallel-finished: true

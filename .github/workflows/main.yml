@@ -48,7 +48,7 @@ jobs:
           pytest test --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov=coveralls --cov-report=xml --cov-report=html
           coveralls
           echo $COVERALLS_REPO_TOKEN
-          ls -als
+          ls -als .coverage
   
       # - name: Start SSH session
       #   uses: luchihoratiu/debug-via-ssh@main

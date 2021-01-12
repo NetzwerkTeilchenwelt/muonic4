@@ -4,9 +4,7 @@ import os
 
 
 def test_check_direction():
-    assert os.listdir(os.getcwd()) == ""
-    assert os.getcwd() == ""
-    f = open("test/data/check_dir_P.txt", "r")
+    f = open("rewrite/test/data/check_dir_P.txt", "r")
     up, down, rate = check_direction(f)
     assert up == 153
     assert down == 48

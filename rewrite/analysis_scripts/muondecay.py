@@ -180,7 +180,8 @@ for filename in files:
                 muon[2] = False
                 print("Deleting decay")
             elif pulse_ch1:
-                print("Decay ch1 %10.8f microseconds" % (1e6*(seconds - decay_start_time_ch1),))
+                print("Decay ch1 %10.8f microseconds" %
+                      (1e6*(seconds - decay_start_time_ch1),))
                 muon[0] = False
                 muon[1] = False
                 muon[2] = False
@@ -198,7 +199,8 @@ for filename in files:
                 muon[2] = False
                 print("Deleting decay")
             elif pulse_ch2 and not pulse_ch1:
-                print("Decay ch2 upper %10.8f microseconds" % (1e6*(seconds - decay_start_time_ch2),))
+                print("Decay ch2 upper %10.8f microseconds" %
+                      (1e6*(seconds - decay_start_time_ch2),))
                 muon[0] = False
                 muon[1] = False
                 muon[2] = False
@@ -206,7 +208,8 @@ for filename in files:
                 continue
             elif pulse_ch1:
                 if seconds - muon['Time'] > 100e-9:
-                    print("Decay ch2 lower %10.8f microseconds" % (1e6*(seconds - decay_start_time_ch2),))
+                    print("Decay ch2 lower %10.8f microseconds" %
+                          (1e6*(seconds - decay_start_time_ch2),))
                     muon[0] = False
                     muon[1] = False
                     muon[2] = False
@@ -244,6 +247,6 @@ for filename in files:
                 decay_start_time_ch2 = seconds
                 print("Decay waiting ch2", seconds)
 
-    print("NMUONS:", file, nmuons)
+    print("NMUONS:", filename, nmuons)
 
 print(nmuons)

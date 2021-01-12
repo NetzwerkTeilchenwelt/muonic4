@@ -49,9 +49,6 @@ def plot_trigger_timmdiff():
 
     pulsebins = n.linspace(0, xmax, len(triggers)//5)
     hist0 = n.histogram(n.array(triggers), bins=pulsebins)
-    #print(f"hist0: {pulsebins}")
-    # print(xmax)
-    # print(pulsebins)
 
     baredges0 = n.linspace(0, hist0[1][-1], len(hist0[0]))
     p.ylim(ymax=1.2 * max(hist0[0]))

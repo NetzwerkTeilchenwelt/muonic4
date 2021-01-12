@@ -1,8 +1,10 @@
 import pytest
 from ..analysis_scripts.check_direction import check_direction
+import os
 
 
 def test_check_direction():
+    assert os.getcwd() == ""
     f = open("test/data/check_dir_P.txt", "r")
     up, down, rate = check_direction(f)
     assert up == 153

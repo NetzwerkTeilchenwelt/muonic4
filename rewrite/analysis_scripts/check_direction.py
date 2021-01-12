@@ -8,8 +8,8 @@ CAUTION: Assuming chan0 is the uppermost and
 import sys
 
 
-def check_direction():
-    f = open(sys.argv[1])
+def check_direction(f):
+
     directions = []
 
     for line in f.readlines():
@@ -28,10 +28,13 @@ def check_direction():
         else:
             up += 1
 
+    rate = float(up)/(up+down)
     print("Upgoing events:", up)
     print("Downgoing events:", down)
-    print("Fraction of upgoing events:", float(up)/(up+down))
+    print("Fraction of upgoing events:", rate)
+    return up, down, rate
 
 
 if __name__ == "__main__":
-    check_direction()
+    f = open(sys.argv[1])
+    check_direction(f)

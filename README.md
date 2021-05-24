@@ -20,7 +20,7 @@ pip3 install -r requirements.txt
 ```
 
 ## Running muonic
-Currently the headless (no gui) version of muonic can take rate measurements. In order to run a rate measurement attach a DAQ card, then open a terminal in the rewrite diirectory and run:
+Currently the headless (no gui) version of muonic can take rate measurements. In order to run a rate measurement attach a DAQ card, then open a terminal in the rewrite directory and run:
 ```bash
 python3 runServer.py
 ```

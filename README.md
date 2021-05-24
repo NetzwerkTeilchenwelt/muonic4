@@ -7,7 +7,7 @@
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
 Sill in very early development.
 
-### Code organization 
+### Code organization
 The source code of muonic 4 currently (!!!) lives in the "rewrite" directory. All pull requests should reference this directory.
 
 ## Documentation
@@ -16,16 +16,16 @@ More documentation can be found [here](https://muonic.readthedocs.io/en/latest/)
 ## Prequisites
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ## Running muonic
-Currently the headless (no gui) version of muonic can take rate measurements. In order to run a rate measurement attach a DAQ card, then open a terminal in the rewrite diirectory and run: 
+Currently the headless (no gui) version of muonic can take rate measurements. In order to run a rate measurement attach a DAQ card, then open a terminal in the rewrite diirectory and run:
 ```bash
 python3 runServer.py
 ```
 
-keep this terminal open, open a second one and run: 
+keep this terminal open, open a second one and run:
 
 ```bash
 python3 runRates.py

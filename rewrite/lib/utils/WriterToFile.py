@@ -15,7 +15,7 @@ import threading
 import queue
 
 
-class WriterToFile():
+class WriterToFile:
     """
     Writes incoming data to a file for storage
     """
@@ -35,7 +35,7 @@ class WriterToFile():
     def fileWriter(self):
         while True:
             msg = self.sock.recv_string()
-            self.outFile.write(msg + '\n')
+            self.outFile.write(jsonpickle.decode(msg).to_json() + "\n")
             self.outFile.flush()
 
     def runDaemon(self):

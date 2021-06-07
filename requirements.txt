@@ -31,7 +31,6 @@ pytz
 PyYAML
 pyzmq
 requests
-serial
 six
 snowballstemmer
 Sphinx

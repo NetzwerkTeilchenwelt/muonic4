@@ -26,6 +26,7 @@ Pygments
 pylint
 pymongo
 pyparsing
+PyQt5
 pyserial
 pytz
 PyYAML

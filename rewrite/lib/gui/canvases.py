@@ -46,7 +46,7 @@ class BasePlotCanvas(FigureCanvas):
         self.logger = logger
 
         # initialization of the canvas
-        self.fig = Figure(facecolor="white", dpi=72)
+        self.fig = Figure(facecolor="white", figsize=(4,4), dpi=72)
         self.fig.subplots_adjust(left=spacing[0], right=spacing[1])
         FigureCanvas.__init__(self, self.fig)
 
@@ -135,7 +135,7 @@ class ScalarsCanvas(BasePlotCanvas):
             self.ax.plot(self.time_data, self.trigger_data, c='g',
                          label='trigger', lw=3)
 
-        if show_pending:
+        if not show_pending:
             left, width = .25, .5
             bottom, height = .35, .8
             right = left + width

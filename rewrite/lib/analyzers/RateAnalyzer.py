@@ -94,7 +94,7 @@ class RateAnalyzer():
                         send = deltaRates.tolist()
                         send.append(self.delta_time)
                         print(f"deltaRates: {deltaRates}, self.delta_time: {self.delta_time}, send: {send}")
-                        self.plot.update_plot(send)
+                        self.progress.emit(send)
                     self.outQueue.put(
                         f"{self.dateandtime} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {self.delta_time} {self.current_pressure} {self.temperature}")
             elif obj.type == RecordType.PRESSURE and obj.payload.valid == True and obj.payload.pressure_type == PressureType.MBAR:
@@ -152,6 +152,8 @@ class RateAnalyzer():
                 self.running = False
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                self.finished.emit()
+
             except (KeyboardInterrupt, AttributeError, RuntimeError, NameError, SystemExit):
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
@@ -159,6 +161,8 @@ class RateAnalyzer():
                 self.server.setRunning(False)
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                self.finished.emit()
+
 
         elif meastime == None:
             self.logger.info(
@@ -195,6 +199,8 @@ class RateAnalyzer():
                 self.server.setRunning(False)
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                self.finished.emit()
+
 
         else:
             self.logger.error(

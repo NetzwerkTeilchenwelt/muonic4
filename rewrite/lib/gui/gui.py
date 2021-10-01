@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, uic
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 import sys
 import os
 import threading
@@ -12,6 +13,20 @@ from ..analyzers.RateAnalyzer import RateAnalyzer
 from .widget import RateWidget
 from .canvases import ScalarsCanvas, MplCanvas
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
+
+class RateWorker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(list)
+
+    def __init__(self, server):
+        QObject.__init__(self)
+        self._DAQServer = server
+        self._RateAnalyser = RateAnalyzer(logger=None, headless=False)
+        self._RateAnalyser.server = self._DAQServer
+        self._RateAnalyser.progress = self.progress
+        self._RateAnalyser.finished = self.finished
+    def run(self):
+        self._RateAnalyser.measure_rates(timewindow=10.0, meastime=1.0)
 
 class Ui(QtWidgets.QMainWindow):
     serverTask = threading.Thread()
@@ -174,6 +189,7 @@ class Ui(QtWidgets.QMainWindow):
         # sc = MplCanvas(self)
         # sc.axes.plot([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
         self.scalars_monitor = ScalarsCanvas(self.RateWidget, logging.getLogger())
+
         toolbar = NavigationToolbar(self.scalars_monitor, self)
 
         layout = QtWidgets.QVBoxLayout()
@@ -184,16 +200,25 @@ class Ui(QtWidgets.QMainWindow):
         # self.setCentralWidget(widget)
         self.RateWidget.setLayout(layout)
         self.show()
-
         self._DAQServer = DAQServer()
+
         self.getCoincidence()
         self.setupChannels()
+
+        self.thread = QThread()
+
+        self.worker = RateWorker(self._DAQServer)
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.progress.connect(self.reportProgress)
+        self.thread.start()
         # layout.addWidget(self.scalars_monitor)
         # self.RateWidget.addWidget()
-        self._RateAnalyser = RateAnalyzer(logger=None, headless=False)
-        self._RateAnalyser.server = self._DAQServer
-        self._RateAnalyser.plot = self.scalars_monitor
-        self._RateAnalyser.measure_rates(timewindow=10.0, meastime=1.0)
+
         # self.RateWidget = RateWidget(logging.getLogger(), "foo.txt")
         # self.RateWidget.table = self.findChild(
         #     QtWidgets.QTableWidget, "tblRates"
@@ -203,6 +228,9 @@ class Ui(QtWidgets.QMainWindow):
         # self.RateWidget.update()
         print("... started")
 
+    def reportProgress(self, data):
+        print(f"ReportProgress: {data}")
+        self.scalars_monitor.update_plot(data)
 
     def btnOpenStudiesRateStopClicked(self):
         pass

@@ -179,6 +179,7 @@ class Ui(QtWidgets.QMainWindow):
         self.start_time = datetime.datetime.utcnow().strftime("%d.%m.%Y %H:%M:%S")
         self.daq_time = self.OpenStudiesReadoutInterval.value()
         self.max_rate = 0
+        self.updateRateInfo()
 
         self.getCoincidence()
         self.setupChannels()
@@ -206,16 +207,18 @@ class Ui(QtWidgets.QMainWindow):
         # self.RateWidget.update()
         print("... started")
 
+    def updateRateInfo(self):
+        self.lnRateStartedAt.setText(str(self.start_time))
+        self.lnRateTimeDAQ.setText(str(self.daq_time))
+        self.lnRateMax.setText(str(self.max_rate))
+
     def reportProgress(self, data):
         print(f"ReportProgress: {data}")
         self.scalars_monitor.update_plot(data)
         max_rate = max(data[:5])
         if max_rate > self.max_rate:
             self.max_rate = max_rate
-        self.lnRateStartedAt.setText(str(self.start_time))
-        self.lnRateTimeDAQ.setText(str(self.daq_time))
-        self.lnRateMax.setText(str(self.max_rate))
-
+        self.updateRateInfo()
 
     def btnOpenStudiesRateStopClicked(self):
         pass

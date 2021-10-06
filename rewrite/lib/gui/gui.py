@@ -8,6 +8,7 @@ import pathlib
 import multiprocessing
 import subprocess
 import logging
+import datetime
 from ..daq.DAQServer import DAQServer
 from ..analyzers.RateAnalyzer import RateAnalyzer
 from .widget import RateWidget
@@ -78,6 +79,7 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QSpinBox, "OpenStudiesCH3Voltage"
         )
 
+
         # Get radio buttons for open studies coincidence
         self.OpenStudiesSingleCoincidence = self.findChild(
             QtWidgets.QRadioButton, "OpenStudiesSingleCoincidence"
@@ -92,58 +94,29 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QRadioButton, "OpenStudiesFourFoldCoincidence"
         )
 
+        self.OpenStudiesReadoutInterval = self.findChild(
+            QtWidgets.QDoubleSpinBox ,"OpenStudiesReadoutInterval"
+        )
         # Get trigger window for open studies
         self.OpenStudiesTriggerWindow = self.findChild(
             QtWidgets.QSpinBox, "OpenStudiesTriggerWindow"
         )
 
+        self.lnRateStartedAt = self.findChild(
+            QtWidgets.QLineEdit, "lnRateStartedAt"
+        )
+        self.lnRateTimeDAQ = self.findChild(
+            QtWidgets.QLineEdit, "lnRateTimeDAQ"
+        )
+        self.lnRateMax = self.findChild(
+            QtWidgets.QLineEdit, "lnRateMax"
+        )
+
         self.RateWidget = self.findChild(QtWidgets.QWidget, "rateWidget")
 
+
+
         self.show()
-
-    def btOpenStudiesStartClicked(self):
-        print("Starting DAQ Server...")
-        # if not self.serverTask:
-        #     self.serverTask = threading.Thread(target=self.startDAQServer).start()
-        #     print(f"Started.. in {type(self.serverTask)}")
-        #     self.serverTask.start()
-        # elif not self.serverTask.is_alive():
-        #     self.serverTask = threading.Thread(target=self.startDAQServer)
-        #     print(f"Started.. out {type(self.serverTask)}")
-        #     self.serverTask.start()
-        # self._DAQServer = SimpleXMLRPCServer(
-        #     ("localhost", 5556), requestHandler=RequestHandler, allow_none=True
-        # )
-        self._DAQServer = DAQServer()
-        # self.serverTask = threading.Thread(target=self.startDAQServer)
-        # self.serverTask.start()
-        # self.startDAQServer()
-        # self.serverTask = multiprocessing.Process(target=self.startDAQServer, args=())
-        # self.serverTask.start()
-       # self._RareAnalyser = RateAnalyzer(logger=None, headless=False)
-
-        print(f"Started..  {type(self.serverTask)}")
-
-    def btOpenStudiesStopClicked(self):
-        # print(f"Stop {self.serverTask.pid}")
-        # self._DAQServer.server_close()
-        # self._DAQServer.shutdown()
-        # self.serverTask.kill()
-        # self.serverTask.terminate()
-        # print(
-        #     f"stopped {self.serverTask.is_alive()}, {output}, {error}, {self.serverTask.pid}"
-        # )
-        # self.serverTask.
-        # if self.serverTask.is_alive():
-        #     print("Joining")
-        #     self.serverTask.join(timeout=0.3)
-        #     if self.serverTask.is_alive():
-        #         print("Still alive")
-        # print("Joinhinh")
-        # self.shutdowntask = threading.Thread(target=self.shutdownDAQServer).start()
-        # self.serverTask.join()
-        # print("Joined")
-        pass
 
     def shutdownDAQServer(self):
         print("shutdown task")
@@ -202,6 +175,11 @@ class Ui(QtWidgets.QMainWindow):
         self.show()
         self._DAQServer = DAQServer()
 
+        # info fields
+        self.start_time = datetime.datetime.utcnow().strftime("%d.%m.%Y %H:%M:%S")
+        self.daq_time = self.OpenStudiesReadoutInterval.value()
+        self.max_rate = 0
+
         self.getCoincidence()
         self.setupChannels()
 
@@ -231,6 +209,13 @@ class Ui(QtWidgets.QMainWindow):
     def reportProgress(self, data):
         print(f"ReportProgress: {data}")
         self.scalars_monitor.update_plot(data)
+        max_rate = max(data[:5])
+        if max_rate > self.max_rate:
+            self.max_rate = max_rate
+        self.lnRateStartedAt.setText(str(self.start_time))
+        self.lnRateTimeDAQ.setText(str(self.daq_time))
+        self.lnRateMax.setText(str(self.max_rate))
+
 
     def btnOpenStudiesRateStopClicked(self):
         pass

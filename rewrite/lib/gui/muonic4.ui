@@ -430,7 +430,7 @@
                     </widget>
                    </item>
                    <item row="1" column="2">
-                    <widget class="QLineEdit" name="lineEdit_9">
+                    <widget class="QLineEdit" name="lnRateTimeDAQ">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -447,7 +447,7 @@
                     </widget>
                    </item>
                    <item row="0" column="2">
-                    <widget class="QLineEdit" name="lineEdit_10">
+                    <widget class="QLineEdit" name="lnRateStartedAt">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -464,7 +464,7 @@
                     </widget>
                    </item>
                    <item row="2" column="2">
-                    <widget class="QLineEdit" name="lineEdit_11">
+                    <widget class="QLineEdit" name="lnRateMax">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                        <horstretch>0</horstretch>

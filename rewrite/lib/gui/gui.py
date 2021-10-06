@@ -1,5 +1,7 @@
 from PyQt5 import QtWidgets, uic
+from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtCore import Qt
 import sys
 import os
 import threading
@@ -229,15 +231,15 @@ class Ui(QtWidgets.QMainWindow):
 
         # add table widget items for channel and trigger values
         for i in range(self.SCALAR_BUF_SIZE):
-            self.rate_fields[i] = QtGui.QTableWidgetItem('--')
-            self.rate_fields[i].setFlags(QtCore.Qt.ItemIsSelectable |
-                                         QtCore.Qt.ItemIsEnabled)
-            self.scalar_fields[i] = QtGui.QTableWidgetItem('--')
-            self.scalar_fields[i].setFlags(QtCore.Qt.ItemIsSelectable |
-                                           QtCore.Qt.ItemIsEnabled)
+            self.rate_fields[i] = QTableWidgetItem('--')
+            self.rate_fields[i].setFlags(Qt.ItemIsSelectable |
+                                         Qt.ItemIsEnabled)
+            self.scalar_fields[i] = QTableWidgetItem('--')
+            self.scalar_fields[i].setFlags(Qt.ItemIsSelectable |
+                                           Qt.ItemIsEnabled)
             self.table.setItem(i, 0, self.rate_fields[i])
             self.table.setItem(i, 1, self.scalar_fields[i])
-
+        self.table.setEnabled(True)
     def updateRateInfo(self):
         self.lnRateStartedAt.setText(str(self.start_time))
         self.lnRateTimeDAQ.setText(str(self.daq_time))
@@ -250,6 +252,10 @@ class Ui(QtWidgets.QMainWindow):
         if max_rate > self.max_rate:
             self.max_rate = max_rate
         self.updateRateInfo()
+        for i in range(self.SCALAR_BUF_SIZE):
+            self.scalar_fields[i].setText("%d"%data[i])
+            self.rate_fields[i].setText("%.3f"%(data[i]%data[-1]))
+
 
     def btnOpenStudiesRateStopClicked(self):
         pass

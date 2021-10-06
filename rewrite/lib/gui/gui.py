@@ -31,7 +31,7 @@ class RateWorker(QObject):
 
 class Ui(QtWidgets.QMainWindow):
     serverTask = threading.Thread()
-
+    SCALAR_BUF_SIZE = 5
     def __init__(self):
         super(Ui, self).__init__()
         #print(f"PWD: {pathlib.Path(__file__).parent.resolve()}")
@@ -112,6 +112,10 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QLineEdit, "lnRateMax"
         )
 
+        self.table = self.findChild(
+            QtWidgets.QTableWidget, "tblRates"
+        )
+
         self.RateWidget = self.findChild(QtWidgets.QWidget, "rateWidget")
 
 
@@ -181,6 +185,8 @@ class Ui(QtWidgets.QMainWindow):
         self.max_rate = 0
         self.updateRateInfo()
 
+        self.setupTable()
+
         self.getCoincidence()
         self.setupChannels()
 
@@ -206,6 +212,31 @@ class Ui(QtWidgets.QMainWindow):
         # self.RateWidget.calculate()
         # self.RateWidget.update()
         print("... started")
+
+    def setupTable(self):
+        self.table.setEnabled(False)
+        self.table.setColumnWidth(0, 85)
+        self.table.setColumnWidth(1, 60)
+        self.table.setHorizontalHeaderLabels(["rate [1/s]", "counts"])
+        self.table.setVerticalHeaderLabels(["channel 0", "channel 1",
+                                            "channel 2", "channel 3",
+                                            "trigger"])
+        self.table.horizontalHeader().setStretchLastSection(True)
+
+         # table column fields
+        self.rate_fields = dict()
+        self.scalar_fields = dict()
+
+        # add table widget items for channel and trigger values
+        for i in range(self.SCALAR_BUF_SIZE):
+            self.rate_fields[i] = QtGui.QTableWidgetItem('--')
+            self.rate_fields[i].setFlags(QtCore.Qt.ItemIsSelectable |
+                                         QtCore.Qt.ItemIsEnabled)
+            self.scalar_fields[i] = QtGui.QTableWidgetItem('--')
+            self.scalar_fields[i].setFlags(QtCore.Qt.ItemIsSelectable |
+                                           QtCore.Qt.ItemIsEnabled)
+            self.table.setItem(i, 0, self.rate_fields[i])
+            self.table.setItem(i, 1, self.scalar_fields[i])
 
     def updateRateInfo(self):
         self.lnRateStartedAt.setText(str(self.start_time))

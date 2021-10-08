@@ -20,6 +20,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 class RateWorker(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(list)
+    daq_time = 10.0
 
     def __init__(self, server):
         QObject.__init__(self)
@@ -29,7 +30,7 @@ class RateWorker(QObject):
         self._RateAnalyser.progress = self.progress
         self._RateAnalyser.finished = self.finished
     def run(self):
-        self._RateAnalyser.measure_rates(timewindow=10.0, meastime=1.0)
+        self._RateAnalyser.measure_rates(timewindow=self.daq_time, meastime=1.0)
 
 class Ui(QtWidgets.QMainWindow):
     serverTask = threading.Thread()
@@ -195,6 +196,7 @@ class Ui(QtWidgets.QMainWindow):
         self.thread = QThread()
 
         self.worker = RateWorker(self._DAQServer)
+        self.worker.daq_time = self.daq_time
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)

@@ -11,10 +11,16 @@ import multiprocessing
 import subprocess
 import logging
 import datetime
+from time import time
+import zmq
+
+from ..analyzers.PulseAnalyzer import PulseAnalyzer
+
+#from src_bak.muonic3.gui.plot_canvases import PulseWidthCanvas
 from ..daq.DAQServer import DAQServer
 from ..analyzers.RateAnalyzer import RateAnalyzer
 from .widget import RateWidget
-from .canvases import ScalarsCanvas, MplCanvas
+from .canvases import ScalarsCanvas, MplCanvas, PulseWidthCanvas
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 
 class RateWorker(QObject):
@@ -31,6 +37,25 @@ class RateWorker(QObject):
         self._RateAnalyser.finished = self.finished
     def run(self):
         self._RateAnalyser.measure_rates(timewindow=self.daq_time, meastime=1.0)
+
+class PulseWorker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(tuple)
+    progressBar = pyqtSignal(float)
+    daq_time = 0.5
+
+    def __init__(self, server):
+        QObject.__init__(self)
+        self._DAQServer = server
+        self._PulseAnalyzer = PulseAnalyzer(logger=None, headless=False)
+        self._PulseAnalyzer.server = self._DAQServer
+        self._PulseAnalyzer.progress = self.progress
+        self._PulseAnalyzer.finished = self.finished
+        self._PulseAnalyzer.progressBar = self.progressBar
+
+    def run(self):
+        self._PulseAnalyzer.measure_pulses(meastime=self.daq_time)
+
 
 class Ui(QtWidgets.QMainWindow):
     serverTask = threading.Thread()
@@ -54,6 +79,20 @@ class Ui(QtWidgets.QMainWindow):
             self.btnOpenStudiesRateStartClicked)
         self.btnOpenStudiesRateStop.clicked.connect(
             self.btnOpenStudiesRateStopClicked)
+
+        self.btnOpenStudiesRateStart = self.findChild(
+            QtWidgets.QPushButton, "btnOpenStudiesPulseStart"
+        )
+
+        self.btnOpenStudiesRateStop = self.findChild(
+            QtWidgets.QPushButton, "btnOpenStudiesPulseStop"
+        )
+
+
+        self.btnOpenStudiesRateStart.clicked.connect(
+            self.btnOpenStudiesPulseStartClicked)
+        self.btnOpenStudiesRateStop.clicked.connect(
+            self.btnOpenStudiesPulseStopClicked)
 
 
         # Get values for open studies
@@ -121,7 +160,13 @@ class Ui(QtWidgets.QMainWindow):
 
         self.RateWidget = self.findChild(QtWidgets.QWidget, "rateWidget")
 
+        self.pulseWidget0 = self.findChild(QtWidgets.QWidget, "pulseWidget0")
+        self.pulseWidget1 = self.findChild(QtWidgets.QWidget, "pulseWidget1")
+        self.pulseWidget2 = self.findChild(QtWidgets.QWidget, "pulseWidget2")
+        self.pulseWidget3 = self.findChild(QtWidgets.QWidget, "pulseWidget3")
 
+        self.pulseProgressbar = self.findChild(QtWidgets.QProgressBar, "pPulses")
+        self.pulseProgressbar.setVisible(False)
 
         self.show()
 
@@ -180,7 +225,11 @@ class Ui(QtWidgets.QMainWindow):
         # self.setCentralWidget(widget)
         self.RateWidget.setLayout(layout)
         self.show()
-        self._DAQServer = DAQServer()
+        try:
+            self._DAQServer = DAQServer()
+        except zmq.error.ZMQError:
+            print("reusing old server")
+
 
         # info fields
         self.start_time = datetime.datetime.utcnow().strftime("%d.%m.%Y %H:%M:%S")
@@ -203,7 +252,7 @@ class Ui(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
-        self.worker.progress.connect(self.reportProgress)
+        self.worker.progress.connect(self.reportProgressRate)
         self.thread.start()
         # layout.addWidget(self.scalars_monitor)
         # self.RateWidget.addWidget()
@@ -247,8 +296,8 @@ class Ui(QtWidgets.QMainWindow):
         self.lnRateTimeDAQ.setText(str(self.daq_time))
         self.lnRateMax.setText(str(self.max_rate))
 
-    def reportProgress(self, data):
-        print(f"ReportProgress: {data}")
+    def reportProgressRate(self, data):
+        print(f"ReportProgressRate: {data}")
         self.scalars_monitor.update_plot(data)
         max_rate = max(data[:5])
         if max_rate > self.max_rate:
@@ -261,6 +310,109 @@ class Ui(QtWidgets.QMainWindow):
 
     def btnOpenStudiesRateStopClicked(self):
         pass
+
+
+    def btnOpenStudiesPulseStartClicked(self):
+        print("Starting")
+        self.pulses = None
+        self.pulseProgressbar.setVisible(True)
+        self.pulseProgressbar.setValue(0)
+        self.pulse_widths = {i: [] for i in range(4)}
+        self.pulse_width_canvases = []
+        self.pulse_width_toolbars = []
+
+        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget0,logging.getLogger(),title="Pulse widths Ch 0"))
+        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget1,logging.getLogger(),title="Pulse widths Ch 1"))
+        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget2,logging.getLogger(),title="Pulse widths Ch 2"))
+        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget3,logging.getLogger(),title="Pulse widths Ch 3"))
+
+        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[0], self.pulseWidget0))
+        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[1], self.pulseWidget1))
+        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[2], self.pulseWidget2))
+        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[3], self.pulseWidget3))
+
+
+        layout0 = QtWidgets.QVBoxLayout()
+        layout0.addWidget(self.pulse_width_toolbars[0])
+        layout0.addWidget(self.pulse_width_canvases[0])
+        self.pulseWidget0.setLayout(layout0)
+        layout1 = QtWidgets.QVBoxLayout()
+        layout1.addWidget(self.pulse_width_toolbars[1])
+        layout1.addWidget(self.pulse_width_canvases[1])
+        self.pulseWidget1.setLayout(layout1)
+        layout2 = QtWidgets.QVBoxLayout()
+        layout2.addWidget(self.pulse_width_toolbars[2])
+        layout2.addWidget(self.pulse_width_canvases[2])
+        self.pulseWidget2.setLayout(layout2)
+        layout3 = QtWidgets.QVBoxLayout()
+        layout3.addWidget(self.pulse_width_toolbars[3])
+        layout3.addWidget(self.pulse_width_canvases[3])
+        self.pulseWidget3.setLayout(layout3)
+
+
+        self.show()
+
+        try:
+            self._DAQServer = DAQServer()
+        except zmq.error.ZMQError:
+            print("reusing old server")
+        self.getCoincidence()
+        self.setupChannels()
+
+
+        self.lastUpdate = time()
+        self.thread = QThread()
+        self.worker = PulseWorker(self._DAQServer)
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.pulseFinished)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.progress.connect(self.reportProgressPulse)
+        self.worker.progressBar.connect(self.reportPulseProgressBar)
+        self.thread.start()
+
+
+    def btnOpenStudiesPulseStopClicked(self):
+        pass
+
+    def reportProgressPulse(self, data):
+        #Pulsedata: (3513.99260384, [], [(13.75, 66.25)], [], [])
+        self.pulses = data
+
+        for i, channel in enumerate(self.pulses[1:]):
+            pulse_widths = self.pulse_widths.get(i, [])
+            for le, fe in channel:
+                if fe is not None:
+                    pulse_widths.append(fe - le)
+                else:
+                    pulse_widths.append(0.)
+            self.pulse_widths[i] = pulse_widths
+        if self.thread.isRunning():
+            t = time()
+            dt = t - self.lastUpdate
+            if dt > 10:
+                self.lastUpdate = t
+                for i, pwc in enumerate(self.pulse_width_canvases):
+                    pwc.update_plot(self.pulse_widths[i])
+                self.pulse_widths = {i: [] for i in range(4)}
+
+
+    def reportPulseProgressBar(self, value):
+        print(f"Current Progress: {value}")
+        self.pulseProgressbar.setVisible(True)
+        self.pulseProgressbar.setValue(value)
+
+    def pulseFinished(self):
+        self.pulseProgressbar.setValue(100)
+        for i, pwc in enumerate(self.pulse_width_canvases):
+                    pwc.update_plot(self.pulse_widths[i])
+        self.pulse_widths = {i: [] for i in range(4)}
+
+
+
 
 
 class RequestHandler(SimpleXMLRPCRequestHandler):

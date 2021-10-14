@@ -219,3 +219,223 @@ class ScalarsCanvas(BasePlotCanvas):
             self.ax.set_xlim(self.time_data[0], self.time_data[-1])
 
         self.fig.canvas.draw()
+
+class BaseHistogramCanvas(BasePlotCanvas):
+    """
+    A base class for all canvases with a histogram
+
+    :param parent: parent widget
+    :param logger: logger object
+    :type logger: logging.Logger
+    :param binning: the binning to use for this canvas
+    :type binning: list or tuple or numpy.ndarray
+    :param hist_color: the color of the histogram
+    :type hist_color: str
+    :param kwargs: additional keyword arguments
+    :param kwargs: dict
+    """
+
+    def __init__(self, parent, logger, binning, hist_color="b", **kwargs):
+        BasePlotCanvas.__init__(self, parent, logger, **kwargs)
+
+        # setup binning
+        self.binning = np.asarray(binning)
+        self.bincontent = np.zeros(len(self.binning))
+        self.hist_patches = self.ax.hist(np.array([self.binning[0] - 1]),
+                                         self.binning, fc=hist_color,
+                                         alpha=0.25)[2]
+        self.heights = []
+        self.dimension = r"$\mu$s"
+
+        # FIXME the current implementation does not know about outliers
+        self.underflow = 0
+        # FIXME the current implementation does not know about outliers
+        self.overflow = 0
+
+        # fixed xrange for histogram
+        self.xmin = self.binning[0]
+        self.xmax = (self.binning[-1] +
+                     (self.binning[:-1] - self.binning[1:])[-1])
+
+    def update_plot(self, data):
+        """
+        Update the plot
+
+        :param data: the data to plot
+        :type data: list of lists
+        :return: None
+        """
+        if not data:
+            return
+
+        # avoid memory leak
+        self.ax.clear()
+        if self.title is not None:
+            self.ax.set_title(self.title)
+
+        # we have to do some bad hacking here,
+        # because the p histogram is rather
+        # simple and it is not possible to add two of them...
+        # however, since we do not want to run into a memory leak
+        # and we also be not dependent on dashi (but maybe
+        # sometimes in the future?) we have to do it
+        # by manipulating rectangles...
+
+        # we want to find the non-empty bins
+        # tmp_hist is compatible with the decay_time hist...
+        tmp_hist = self.ax.hist(data, self.binning, fc="b", alpha=0.25)[0]
+
+        for hist_bin in enumerate(tmp_hist):
+            if hist_bin[1]:
+                self.hist_patches[hist_bin[0]].set_height(
+                    self.hist_patches[hist_bin[0]].get_height() +
+                    hist_bin[1])
+
+        # we want to get the maximum for the ylims
+        # self.heights contains the bincontent!
+
+        self.heights = []
+        for patch in self.hist_patches:
+            self.heights.append(patch.get_height())
+
+        self.logger.debug("Histogram patch heights %s" % self.heights)
+        self.ax.set_ylim(ymax=max([h+np.sqrt(h) for h in self.heights]) * 1.1)
+        self.ax.set_ylim(ymin=0)
+        self.ax.set_xlabel(self.xlabel)
+        self.ax.set_ylabel(self.ylabel)
+        self.ax.set_xlim(xmin=self.xmin, xmax=self.xmax)
+
+        # always get rid of unused stuff
+        del tmp_hist
+
+        # try to add errorbars
+        bincenters = (self.binning[1:]+self.binning[:-1])/2.
+        for i, height in enumerate(self.heights):
+            self.ax.errorbar(bincenters[i], height,
+                             yerr=np.sqrt(height), color='b')
+
+        # some beautification
+        self.ax.grid()
+
+        # we now have to pass our new patches
+        # to the figure we created..
+        self.ax.patches = self.hist_patches
+        self.fig.canvas.draw()
+
+    def show_fit(self, bin_centers, bincontent, fitx, decay, p, covar,
+                 chisquare, nbins):
+        """
+        Plot the fit onto the diagram
+
+        :param bin_centers: bin centers
+        :param bincontent: bincontents
+        :param fitx: the fit
+        :type fitx: numpy.ndarray
+        :param decay: decay function
+        :type decay: function
+        :param p: fit parameters
+        :type p: list
+        :param covar: covariance matrix
+        :type covar: matrix
+        :param chisquare: chi-squared
+        :type chisquare: float
+        :param nbins: number of bins
+        :type nbins: int
+        :returns: None
+        """
+
+        # clears a previous fit from the canvas
+        self.ax.lines = []
+        self.ax.plot(bin_centers, bincontent, "b^", fitx, decay(p, fitx), "b-")
+
+        # print fit function formula start
+        #x = bin_centers
+        #y = bincontent
+        #poly = pl.polyfit(x, y, 2)
+
+        # def poly2latex(poly, variable="x", width=2):
+        #  t = ["{0:0.{width}f}"]
+        #  t.append(t[-1] + " {variable}")
+        #  t.append(t[-1] + "^{1}")
+
+        #  def f():
+        #    for i, v in enumerate(reversed(poly)):
+        #      idx = i if i < 2 else 2
+        #      yield t[idx].format(v, i, variable=variable, width=width)
+
+        #  return "${}$".format("+".join(f()))
+
+        #self.ax.plot(x, y, "o", alpha=0.4)
+        #x2 = np.linspace(-2, 2, 100)
+        #y2 = np.polyval(poly, x2)
+        #self.ax.plot(x2, y2, lw=2, color="r")
+        #self.ax.text(x2[5], y2[5], poly2latex(poly), fontsize=16)
+        # print fit function formula end
+
+        # FIXME: this seems to crop the histogram
+        # self.ax.set_ylim(0,max(bincontent)*1.2)
+        self.ax.set_xlabel(self.xlabel)
+        self.ax.set_ylabel(self.ylabel)
+
+        # compute the errors on the fit, nb that this calculation assumes that
+        # scipy.optimize.leastsq was used
+        error = []
+        for i in range(len(p)):
+            try:
+                error.append(np.absolute(covar[i][i]) ** 0.5)
+            except Exception:
+                error.append(0.00)
+
+        perr_leastsq = np.array(error)
+
+        try:
+            if chisquare / (nbins-len(p)) > 10000:
+                self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
+                                         " chisq/ndf=%.4g") %
+                                (p[2], perr_leastsq[2], self.dimension,
+                                 chisquare / (nbins-len(p)))), loc=1)
+            self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
+                                     " chisq/ndf=%4.2f") %
+                            (p[2], perr_leastsq[2], self.dimension,
+                             chisquare / (nbins-len(p)))), loc=1)
+        except TypeError:
+            if chisquare / (nbins-len(p)) > 10000:
+                self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
+                                         " chisq/ndf=%.4g") %
+                                (p[2], perr_leastsq[2], self.dimension,
+                                 chisquare / (nbins-len(p)))), loc=1)
+            self.logger.warn("Covariance Matrix is 'None', could " +
+                             "not calculate fit error!")
+            self.ax.legend(("Data", ("Fit: (%4.2f) %s \n " +
+                                     " chisq/ndf=%4.2f") %
+                            (p[2], self.dimension,
+                             chisquare / (nbins-len(p)))), loc=1)
+
+        self.fig.canvas.draw()
+class PulseWidthCanvas(BaseHistogramCanvas):
+    """
+    A simple histogram for the use with pulse width measurement
+
+    :param parent: parent widget
+    :param logger: logger object
+    :type logger: logging.Logger
+    :param hist_color: the color of the histogram
+    :type hist_color: str
+    """
+
+    def __init__(self, parent, logger, hist_color="r", title=None):
+        BaseHistogramCanvas.__init__(
+            self, parent, logger, np.linspace(0., 100, 30),
+            hist_color=hist_color, xmin=0., xmax=100, ymin=0, ymax=2,
+            ylabel="Events", xlabel="Pulse Width (ns)")
+        self.ax_title = title if title is not None else "Pulse Widths"
+        self.ax.set_title(self.ax_title)
+        self.ax.figure.tight_layout()
+        self.fig.canvas.draw()
+        print("Pulse init done")
+
+    def update_plot(self, data):
+        BaseHistogramCanvas.update_plot(self, data)
+        self.ax.set_title(self.ax_title)
+        self.ax.figure.tight_layout()
+        self.fig.canvas.draw()

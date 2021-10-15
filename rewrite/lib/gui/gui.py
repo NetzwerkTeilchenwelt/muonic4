@@ -11,17 +11,24 @@ import multiprocessing
 import subprocess
 import logging
 import datetime
+import numpy as np
 from time import time
 import zmq
-
+from ..analyzers.VelocityTrigger import VelocityTrigger
 from ..analyzers.PulseAnalyzer import PulseAnalyzer
+from ..analyzers.fit import gaussian_fit
 
-#from src_bak.muonic3.gui.plot_canvases import PulseWidthCanvas
+# from src_bak.muonic3.gui.plot_canvases import PulseWidthCanvas
 from ..daq.DAQServer import DAQServer
 from ..analyzers.RateAnalyzer import RateAnalyzer
 from .widget import RateWidget
-from .canvases import ScalarsCanvas, MplCanvas, PulseWidthCanvas
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
+from .util import WrappedFile
+from .canvases import ScalarsCanvas, MplCanvas, PulseWidthCanvas, LifetimeCanvas
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvasQTAgg,
+    NavigationToolbar2QT as NavigationToolbar,
+)
+
 
 class RateWorker(QObject):
     finished = pyqtSignal()
@@ -35,8 +42,10 @@ class RateWorker(QObject):
         self._RateAnalyser.server = self._DAQServer
         self._RateAnalyser.progress = self.progress
         self._RateAnalyser.finished = self.finished
+
     def run(self):
         self._RateAnalyser.measure_rates(timewindow=self.daq_time, meastime=1.0)
+
 
 class PulseWorker(QObject):
     finished = pyqtSignal()
@@ -56,13 +65,31 @@ class PulseWorker(QObject):
     def run(self):
         self._PulseAnalyzer.measure_pulses(meastime=self.daq_time)
 
+class VelocityWorker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(tuple)
+    progressBar = pyqtSignal(float)
+    daq_time = 0.5
+
+    def __init__(self, server):
+        QObject.__init__(self)
+        self._DAQServer = server
+        self._PulseAnalyzer = PulseAnalyzer(logger=None, headless=False)
+        self._PulseAnalyzer.server = self._DAQServer
+        self._PulseAnalyzer.progress = self.progress
+        self._PulseAnalyzer.finished = self.finished
+        self._PulseAnalyzer.progressBar = self.progressBar
+
+    def run(self):
+        self._PulseAnalyzer.measure_pulses(meastime=self.daq_time)
 
 class Ui(QtWidgets.QMainWindow):
     serverTask = threading.Thread()
     SCALAR_BUF_SIZE = 5
+
     def __init__(self):
         super(Ui, self).__init__()
-        #print(f"PWD: {pathlib.Path(__file__).parent.resolve()}")
+        # print(f"PWD: {pathlib.Path(__file__).parent.resolve()}")
         uic.loadUi(f"{pathlib.Path(__file__).parent.resolve()}/muonic4.ui", self)
 
         # Get buttons for open studies
@@ -74,11 +101,10 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QPushButton, "btnOpenStudiesRateStop"
         )
 
-
         self.btnOpenStudiesRateStart.clicked.connect(
-            self.btnOpenStudiesRateStartClicked)
-        self.btnOpenStudiesRateStop.clicked.connect(
-            self.btnOpenStudiesRateStopClicked)
+            self.btnOpenStudiesRateStartClicked
+        )
+        self.btnOpenStudiesRateStop.clicked.connect(self.btnOpenStudiesRateStopClicked)
 
         self.btnOpenStudiesRateStart = self.findChild(
             QtWidgets.QPushButton, "btnOpenStudiesPulseStart"
@@ -88,12 +114,10 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QPushButton, "btnOpenStudiesPulseStop"
         )
 
-
         self.btnOpenStudiesRateStart.clicked.connect(
-            self.btnOpenStudiesPulseStartClicked)
-        self.btnOpenStudiesRateStop.clicked.connect(
-            self.btnOpenStudiesPulseStopClicked)
-
+            self.btnOpenStudiesPulseStartClicked
+        )
+        self.btnOpenStudiesRateStop.clicked.connect(self.btnOpenStudiesPulseStopClicked)
 
         # Get values for open studies
         self.ckOpenStudiesCH0Enabled = self.findChild(
@@ -121,7 +145,6 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QSpinBox, "OpenStudiesCH3Voltage"
         )
 
-
         # Get radio buttons for open studies coincidence
         self.OpenStudiesSingleCoincidence = self.findChild(
             QtWidgets.QRadioButton, "OpenStudiesSingleCoincidence"
@@ -137,26 +160,18 @@ class Ui(QtWidgets.QMainWindow):
         )
 
         self.OpenStudiesReadoutInterval = self.findChild(
-            QtWidgets.QDoubleSpinBox ,"OpenStudiesReadoutInterval"
+            QtWidgets.QDoubleSpinBox, "OpenStudiesReadoutInterval"
         )
         # Get trigger window for open studies
         self.OpenStudiesTriggerWindow = self.findChild(
             QtWidgets.QSpinBox, "OpenStudiesTriggerWindow"
         )
 
-        self.lnRateStartedAt = self.findChild(
-            QtWidgets.QLineEdit, "lnRateStartedAt"
-        )
-        self.lnRateTimeDAQ = self.findChild(
-            QtWidgets.QLineEdit, "lnRateTimeDAQ"
-        )
-        self.lnRateMax = self.findChild(
-            QtWidgets.QLineEdit, "lnRateMax"
-        )
+        self.lnRateStartedAt = self.findChild(QtWidgets.QLineEdit, "lnRateStartedAt")
+        self.lnRateTimeDAQ = self.findChild(QtWidgets.QLineEdit, "lnRateTimeDAQ")
+        self.lnRateMax = self.findChild(QtWidgets.QLineEdit, "lnRateMax")
 
-        self.table = self.findChild(
-            QtWidgets.QTableWidget, "tblRates"
-        )
+        self.table = self.findChild(QtWidgets.QTableWidget, "tblRates")
 
         self.RateWidget = self.findChild(QtWidgets.QWidget, "rateWidget")
 
@@ -167,6 +182,111 @@ class Ui(QtWidgets.QMainWindow):
 
         self.pulseProgressbar = self.findChild(QtWidgets.QProgressBar, "pPulses")
         self.pulseProgressbar.setVisible(False)
+
+
+        # Get values for velocity
+        self.ckVelocityCH0Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckVelocityCH0Enabled"
+        )
+        self.VelocityCH0Voltage = self.findChild(
+            QtWidgets.QSpinBox, "VelocityCH0Voltage"
+        )
+        self.ckVelocityCH1Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckVelocityCH1Enabled"
+        )
+        self.VelocityCH1Voltage = self.findChild(
+            QtWidgets.QSpinBox, "VelocityCH1Voltage"
+        )
+        self.ckVelocityCH2Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckVelocityCH2Enabled"
+        )
+        self.VelocityCH2Voltage = self.findChild(
+            QtWidgets.QSpinBox, "VelocityCH2Voltage"
+        )
+        self.ckVelocityCH3Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckVelocityCH3Enabled"
+        )
+        self.VelocityCH3Voltage = self.findChild(
+            QtWidgets.QSpinBox, "VelocityCH3Voltage"
+        )
+
+        self.VelocityUpperChannel0 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityUpperChannel0"
+        )
+        self.VelocityUpperChannel1 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityUpperChannel1"
+        )
+        self.VelocityUpperChannel2 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityUpperChannel2"
+        )
+        self.VelocityUpperChannel3 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityUpperChannel3"
+        )
+        self.VelocityLowerChannel0 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityLowerChannel0"
+        )
+        self.VelocityLowerChannel1 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityLowerChannel1"
+        )
+        self.VelocityLowerChannel2 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityLowerChannel2"
+        )
+        self.VelocityLowerChannel3 = self.findChild(
+            QtWidgets.QRadioButton, "VelocityLowerChannel3"
+        )
+
+        self.btVelocityStart = self.findChild(
+            QtWidgets.QPushButton, "btVelocityStart"
+        )
+        self.btVelocityStart.clicked.connect(
+            self.btnVelocityStartClicked
+        )
+        self.btVelocityStop = self.findChild(
+            QtWidgets.QPushButton, "btVelocityStop"
+        )
+        self.btVelocityStop.clicked.connect(
+            self.btnVelocityStopClicked
+        )
+
+        self.btnVelocityFit = self.findChild(
+            QtWidgets.QPushButton, "btnVelocityFit"
+        )
+        self.btnVelocityFit.clicked.connect(
+            self.btnVelocityFitClicked
+        )
+
+        self.velocityWidget = self.findChild(
+            QtWidgets.QWidget, "velocityWidget"
+        )
+
+        self.VelocityFitMin = self.findChild(
+            QtWidgets.QSpinBox, "velocityFitMin"
+        )
+
+        self.VelocityFitMax = self.findChild(
+            QtWidgets.QSpinBox, "velocityFitMax"
+        )
+
+        self.velocityFitParameters = self.findChild(
+            QtWidgets.QPlainTextEdit, "velocityFitParameters"
+        )
+
+        self.VelocityMounCount = self.findChild(
+            QtWidgets.QLineEdit, "VelocityMounCount"
+        )
+
+        self.VelocityLastMuon = self.findChild(
+            QtWidgets.QLineEdit, "VelocityLastMuon"
+        )
+
+        self.VelocityProgress = self.findChild(
+            QtWidgets.QProgressBar, "VelocityProgress"
+        )
+        self.VelocityProgress.setVisible(False)
+
+        self.velocityMeasTime = self.findChild(
+            QtWidgets.QDoubleSpinBox, "velocityMeasTime"
+        )
 
         self.show()
 
@@ -180,13 +300,13 @@ class Ui(QtWidgets.QMainWindow):
         self._DAQServer.serve_forever()
 
     def getCoincidence(self):
-        if self.OpenStudiesSingleCoincidence:
+        if self.OpenStudiesSingleCoincidence.isChecked():
             self.coincidence = "single"
-        elif self.OpenStudiesTwoFoldCoincidence:
+        elif self.OpenStudiesTwoFoldCoincidence.isChecked():
             self.coincidence = "twofold"
-        elif self.OpenStudiesThreeFoldCoincidence:
+        elif self.OpenStudiesThreeFoldCoincidence.isChecked():
             self.coincidence = "threefold"
-        elif self.OpenStudiesFourFoldCoincidence:
+        elif self.OpenStudiesFourFoldCoincidence.isChecked():
             self.coincidence = "fourfold"
 
     def setupChannels(self):
@@ -200,16 +320,23 @@ class Ui(QtWidgets.QMainWindow):
         self.ch2Threshold = int(self.OpenStudiesCH2Voltage.value())
         self.ch3Threshold = int(self.OpenStudiesCH3Voltage.value())
 
-
         print(f"Ch0 config: {self.ch0enabled} -> {self.ch0Threshold}")
         print(f"Ch1 config: {self.ch1enabled} -> {self.ch1Threshold}")
         print(f"Ch2 config: {self.ch2enabled} -> {self.ch2Threshold}")
         print(f"Ch3 config: {self.ch3enabled} -> {self.ch3Threshold}")
-        self._DAQServer.setup_channel(self.ch0enabled, self.ch1enabled, self.ch2enabled, self.ch3enabled, self.coincidence)
-        self._DAQServer.set_threashold(self.ch0Threshold,self.ch1Threshold, self.ch2Threshold, self.ch3Threshold)
+        self._DAQServer.setup_channel(
+            self.ch0enabled,
+            self.ch1enabled,
+            self.ch2enabled,
+            self.ch3enabled,
+            self.coincidence,
+        )
+        self._DAQServer.set_threashold(
+            self.ch0Threshold, self.ch1Threshold, self.ch2Threshold, self.ch3Threshold
+        )
 
     def btnOpenStudiesRateStartClicked(self):
-        #self._DAQServer = DAQServer()
+        # self._DAQServer = DAQServer()
         print("Starting...")
         # sc = MplCanvas(self)
         # sc.axes.plot([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
@@ -229,7 +356,6 @@ class Ui(QtWidgets.QMainWindow):
             self._DAQServer = DAQServer()
         except zmq.error.ZMQError:
             print("reusing old server")
-
 
         # info fields
         self.start_time = datetime.datetime.utcnow().strftime("%d.%m.%Y %H:%M:%S")
@@ -271,26 +397,25 @@ class Ui(QtWidgets.QMainWindow):
         self.table.setColumnWidth(0, 85)
         self.table.setColumnWidth(1, 60)
         self.table.setHorizontalHeaderLabels(["rate [1/s]", "counts"])
-        self.table.setVerticalHeaderLabels(["channel 0", "channel 1",
-                                            "channel 2", "channel 3",
-                                            "trigger"])
+        self.table.setVerticalHeaderLabels(
+            ["channel 0", "channel 1", "channel 2", "channel 3", "trigger"]
+        )
         self.table.horizontalHeader().setStretchLastSection(True)
 
-         # table column fields
+        # table column fields
         self.rate_fields = dict()
         self.scalar_fields = dict()
 
         # add table widget items for channel and trigger values
         for i in range(self.SCALAR_BUF_SIZE):
-            self.rate_fields[i] = QTableWidgetItem('--')
-            self.rate_fields[i].setFlags(Qt.ItemIsSelectable |
-                                         Qt.ItemIsEnabled)
-            self.scalar_fields[i] = QTableWidgetItem('--')
-            self.scalar_fields[i].setFlags(Qt.ItemIsSelectable |
-                                           Qt.ItemIsEnabled)
+            self.rate_fields[i] = QTableWidgetItem("--")
+            self.rate_fields[i].setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.scalar_fields[i] = QTableWidgetItem("--")
+            self.scalar_fields[i].setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             self.table.setItem(i, 0, self.rate_fields[i])
             self.table.setItem(i, 1, self.scalar_fields[i])
         self.table.setEnabled(True)
+
     def updateRateInfo(self):
         self.lnRateStartedAt.setText(str(self.start_time))
         self.lnRateTimeDAQ.setText(str(self.daq_time))
@@ -304,13 +429,11 @@ class Ui(QtWidgets.QMainWindow):
             self.max_rate = max_rate
         self.updateRateInfo()
         for i in range(self.SCALAR_BUF_SIZE):
-            self.scalar_fields[i].setText("%d"%data[i])
-            self.rate_fields[i].setText("%.3f"%(data[i]%data[-1]))
-
+            self.scalar_fields[i].setText("%d" % data[i])
+            self.rate_fields[i].setText("%.3f" % (data[i] % data[-1]))
 
     def btnOpenStudiesRateStopClicked(self):
         pass
-
 
     def btnOpenStudiesPulseStartClicked(self):
         print("Starting")
@@ -321,16 +444,39 @@ class Ui(QtWidgets.QMainWindow):
         self.pulse_width_canvases = []
         self.pulse_width_toolbars = []
 
-        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget0,logging.getLogger(),title="Pulse widths Ch 0"))
-        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget1,logging.getLogger(),title="Pulse widths Ch 1"))
-        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget2,logging.getLogger(),title="Pulse widths Ch 2"))
-        self.pulse_width_canvases.append(PulseWidthCanvas(self.pulseWidget3,logging.getLogger(),title="Pulse widths Ch 3"))
+        self.pulse_width_canvases.append(
+            PulseWidthCanvas(
+                self.pulseWidget0, logging.getLogger(), title="Pulse widths Ch 0"
+            )
+        )
+        self.pulse_width_canvases.append(
+            PulseWidthCanvas(
+                self.pulseWidget1, logging.getLogger(), title="Pulse widths Ch 1"
+            )
+        )
+        self.pulse_width_canvases.append(
+            PulseWidthCanvas(
+                self.pulseWidget2, logging.getLogger(), title="Pulse widths Ch 2"
+            )
+        )
+        self.pulse_width_canvases.append(
+            PulseWidthCanvas(
+                self.pulseWidget3, logging.getLogger(), title="Pulse widths Ch 3"
+            )
+        )
 
-        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[0], self.pulseWidget0))
-        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[1], self.pulseWidget1))
-        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[2], self.pulseWidget2))
-        self.pulse_width_toolbars.append(NavigationToolbar(self.pulse_width_canvases[3], self.pulseWidget3))
-
+        self.pulse_width_toolbars.append(
+            NavigationToolbar(self.pulse_width_canvases[0], self.pulseWidget0)
+        )
+        self.pulse_width_toolbars.append(
+            NavigationToolbar(self.pulse_width_canvases[1], self.pulseWidget1)
+        )
+        self.pulse_width_toolbars.append(
+            NavigationToolbar(self.pulse_width_canvases[2], self.pulseWidget2)
+        )
+        self.pulse_width_toolbars.append(
+            NavigationToolbar(self.pulse_width_canvases[3], self.pulseWidget3)
+        )
 
         layout0 = QtWidgets.QVBoxLayout()
         layout0.addWidget(self.pulse_width_toolbars[0])
@@ -349,7 +495,6 @@ class Ui(QtWidgets.QMainWindow):
         layout3.addWidget(self.pulse_width_canvases[3])
         self.pulseWidget3.setLayout(layout3)
 
-
         self.show()
 
         try:
@@ -358,7 +503,6 @@ class Ui(QtWidgets.QMainWindow):
             print("reusing old server")
         self.getCoincidence()
         self.setupChannels()
-
 
         self.lastUpdate = time()
         self.thread = QThread()
@@ -374,12 +518,11 @@ class Ui(QtWidgets.QMainWindow):
         self.worker.progressBar.connect(self.reportPulseProgressBar)
         self.thread.start()
 
-
     def btnOpenStudiesPulseStopClicked(self):
         pass
 
     def reportProgressPulse(self, data):
-        #Pulsedata: (3513.99260384, [], [(13.75, 66.25)], [], [])
+        # Pulsedata: (3513.99260384, [], [(13.75, 66.25)], [], [])
         self.pulses = data
 
         for i, channel in enumerate(self.pulses[1:]):
@@ -388,7 +531,7 @@ class Ui(QtWidgets.QMainWindow):
                 if fe is not None:
                     pulse_widths.append(fe - le)
                 else:
-                    pulse_widths.append(0.)
+                    pulse_widths.append(0.0)
             self.pulse_widths[i] = pulse_widths
         if self.thread.isRunning():
             t = time()
@@ -399,7 +542,6 @@ class Ui(QtWidgets.QMainWindow):
                     pwc.update_plot(self.pulse_widths[i])
                 self.pulse_widths = {i: [] for i in range(4)}
 
-
     def reportPulseProgressBar(self, value):
         print(f"Current Progress: {value}")
         self.pulseProgressbar.setVisible(True)
@@ -408,11 +550,175 @@ class Ui(QtWidgets.QMainWindow):
     def pulseFinished(self):
         self.pulseProgressbar.setValue(100)
         for i, pwc in enumerate(self.pulse_width_canvases):
-                    pwc.update_plot(self.pulse_widths[i])
+            pwc.update_plot(self.pulse_widths[i])
         self.pulse_widths = {i: [] for i in range(4)}
 
+    def setupVelocityChannels(self):
+        self.ch0enabled = self.ckVelocityCH0Enabled.isChecked()
+        self.ch1enabled = self.ckVelocityCH1Enabled.isChecked()
+        self.ch2enabled = self.ckVelocityCH2Enabled.isChecked()
+        self.ch3enabled = self.ckVelocityCH3Enabled.isChecked()
 
+        self.ch0Threshold = int(self.VelocityCH0Voltage.value())
+        self.ch1Threshold = int(self.VelocityCH1Voltage.value())
+        self.ch2Threshold = int(self.VelocityCH2Voltage.value())
+        self.ch3Threshold = int(self.VelocityCH3Voltage.value())
 
+        print(f"Ch0 config: {self.ch0enabled} -> {self.ch0Threshold}")
+        print(f"Ch1 config: {self.ch1enabled} -> {self.ch1Threshold}")
+        print(f"Ch2 config: {self.ch2enabled} -> {self.ch2Threshold}")
+        print(f"Ch3 config: {self.ch3enabled} -> {self.ch3Threshold}")
+        self._DAQServer.setup_channel(
+            self.ch0enabled,
+            self.ch1enabled,
+            self.ch2enabled,
+            self.ch3enabled,
+            "twofold",
+        )
+        self._DAQServer.set_threashold(
+            self.ch0Threshold, self.ch1Threshold, self.ch2Threshold, self.ch3Threshold
+        )
+
+    def getUpperLower(self):
+        self.upper_channel = 0
+        if self.VelocityUpperChannel0.isChecked():
+            self.upper_channel = 0
+        elif self.VelocityUpperChannel1.isChecked():
+            self.upper_channel = 1
+        elif self.VelocityUpperChannel2.isChecked():
+            self.upper_channel = 2
+        elif self.VelocityUpperChannel3.isChecked():
+            self.upper_channel = 3
+
+        self.lower_channel = 1
+        if self.VelocityLowerChannel0.isChecked():
+            self.lower_channel = 0
+        elif self.VelocityLowerChannel1.isChecked():
+            self.lower_channel = 1
+        elif self.VelocityLowerChannel2.isChecked():
+            self.lower_channel = 2
+        elif self.VelocityLowerChannel3.isChecked():
+            self.lower_channel = 3
+
+        print(f"got upper: {self.upper_channel} lower: {self.lower_channel}")
+
+    def btnVelocityStartClicked(self):
+        print("start clicked")
+        self.VelocityProgress.setVisible(True)
+        self.binning = (0., 30, 25)
+        # default fit range
+        self.fit_range = (self.binning[0], self.binning[1])
+
+        self.event_data = []
+        self.last_event_time = None
+        self.active_since = None
+
+        self.getUpperLower()
+        # measurement duration and start time
+        self.measurement_duration = datetime.timedelta()
+        self.start_time = datetime.datetime.utcnow()
+        self.mu_file = WrappedFile(f"{self.start_time}_mu.txt")
+
+        self.velocity_canvas = LifetimeCanvas(self.velocityWidget , logging.getLogger(), binning = self.binning)
+        toolbar = NavigationToolbar(self.velocity_canvas, self)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(toolbar)
+        layout.addWidget(self.velocity_canvas)
+        self.velocityWidget.setLayout(layout)
+        self.show()
+
+        self.trigger = VelocityTrigger(logging.getLogger())
+        self.start_time = datetime.datetime.utcnow()
+        self.mu_file.open("a")
+        self.mu_file.write("# new velocity measurement run from: %s\n" %
+                               self.start_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
+        self.muon_counter = 0
+
+        try:
+            self._DAQServer = DAQServer()
+        except zmq.error.ZMQError:
+            print("reusing old server")
+        self.setupVelocityChannels()
+
+        self.thread = QThread()
+        self.worker = VelocityWorker(self._DAQServer)
+        self.worker.daq_time = self.velocityMeasTime.value()
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.velocityFinished)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.progress.connect(self.reportProgressVelocity)
+        self.worker.progressBar.connect(self.reportProgressBarVelocity)
+        self.thread.start()
+
+    def btnVelocityStopClicked(self):
+        print("stop clicked")
+
+    def calculateVelocity(self, pulses):
+        if pulses is None:
+            return
+
+        flight_time = self.trigger.trigger(pulses,
+                                           upper_channel=self.upper_channel+1,
+                                           lower_channel=self.lower_channel+1)
+
+        if flight_time is not None and flight_time > 0:
+            self.event_data.append(flight_time)
+            self.muon_counter += 1
+            self.last_event_time = datetime.datetime.utcnow()
+            logging.getLogger().info("measured flight time %s" % flight_time)
+
+    def reportProgressVelocity(self, data):
+
+        self.calculateVelocity(data)
+        if not self.event_data:
+            print("Eventdata empty")
+            return
+
+        self.VelocityMounCount.setText(f"{self.muon_counter}")
+        self.VelocityLastMuon.setText(f'{self.last_event_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]}')
+        self.velocity_canvas.update_plot(self.event_data)
+        for flight_time in self.event_data:
+            self.mu_file.write("%s Flight time %s\n" % (
+                self.last_event_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                repr(flight_time)))
+
+        self.event_data = []
+
+    def reportProgressBarVelocity(self, progress):
+        self.VelocityProgress.setVisible(True)
+        self.VelocityProgress.setValue(progress)
+
+    def velocityFinished(self):
+        stop_time = datetime.datetime.utcnow()
+        self.measurement_duration += stop_time - self.start_time
+        self.VelocityProgress.setValue(100)
+        logging.getLogger().info("Muon velocity mode now deactivated, returning to " +
+                         "previous setting (if available)")
+
+        self.mu_file.write("# stopped run on: %s\n" %
+                           stop_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
+        self.mu_file.close()
+
+    def btnVelocityFitClicked(self):
+        self.fit_range = (self.VelocityFitMin.value(), self.VelocityFitMax.value())
+        logging.getLogger().debug("Using fit range of %s" % repr(self.fit_range))
+        fit_results = gaussian_fit(
+            bincontent=np.asarray(self.velocity_canvas.heights),
+            binning=self.binning, fitrange=self.fit_range)
+
+        print(f"fitresult: {fit_results}")
+        if fit_results is not None:
+            params = self.velocity_canvas.show_fit(*fit_results)
+            self.velocityFitParameters.setPlainText(f"""
+            A:{round(params[0][0],2)} +- {round(params[1][0],2)}
+            sigma:{round(params[0][1],2)} +- {round(params[1][1],2)}
+            mu:{round(params[0][2],2)} +- {round(params[1][2],2)}
+             """)
 
 
 class RequestHandler(SimpleXMLRPCRequestHandler):

@@ -32,6 +32,7 @@ pytz
 PyYAML
 pyzmq
 requests
+scipy
 serial
 six
 snowballstemmer

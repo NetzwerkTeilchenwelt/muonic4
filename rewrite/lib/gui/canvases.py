@@ -1,9 +1,9 @@
 import matplotlib
-matplotlib.use('Qt5Agg')
+
+matplotlib.use("Qt5Agg")
 
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg \
-    import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
@@ -13,6 +13,7 @@ class MplCanvas(FigureCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
+
 
 class BasePlotCanvas(FigureCanvas):
     """
@@ -39,14 +40,25 @@ class BasePlotCanvas(FigureCanvas):
     :type spacing: tuple
     """
 
-    def __init__(self, parent, logger, ymin=0, ymax=10, xmin=0, xmax=10,
-                 xlabel="xlabel", ylabel="ylabel", grid=True, title=None,
-                 spacing=(0.1, 0.9)):
+    def __init__(
+        self,
+        parent,
+        logger,
+        ymin=0,
+        ymax=10,
+        xmin=0,
+        xmax=10,
+        xlabel="xlabel",
+        ylabel="ylabel",
+        grid=True,
+        title=None,
+        spacing=(0.1, 0.9),
+    ):
 
         self.logger = logger
 
         # initialization of the canvas
-        self.fig = Figure(facecolor="white", figsize=(4,4), dpi=72)
+        self.fig = Figure(facecolor="white", figsize=(4, 4), dpi=72)
         self.fig.subplots_adjust(left=spacing[0], right=spacing[1])
         FigureCanvas.__init__(self, self.fig)
 
@@ -91,14 +103,22 @@ class ScalarsCanvas(BasePlotCanvas):
     :param max_length: maximum number of values to plot
     :type max_length: int
     """
+
     DEFAULT_CHANNEL_CONFIG = [True, True, True, True]
-    CHANNEL_COLORS = ['y', 'm', 'c', 'b']
-    TRIGGER_COLOR = 'g'
+    CHANNEL_COLORS = ["y", "m", "c", "b"]
+    TRIGGER_COLOR = "g"
 
     def __init__(self, parent, logger, max_length=40):
 
-        BasePlotCanvas.__init__(self, parent, logger, ymin=0, ymax=20,
-                                xlabel="Time (s)", ylabel="Rate (1/s)")
+        BasePlotCanvas.__init__(
+            self,
+            parent,
+            logger,
+            ymin=0,
+            ymax=20,
+            xlabel="Time (s)",
+            ylabel="Rate (1/s)",
+        )
         self.show_trigger = True
         self.max_length = max_length
         self.channel_data = [[], [], [], []]
@@ -128,28 +148,42 @@ class ScalarsCanvas(BasePlotCanvas):
         self.time_window = 0
 
         for ch in range(4):
-            self.ax.plot(self.time_data, self.channel_data[ch],
-                         c=self.CHANNEL_COLORS[ch],
-                         label=("ch%d" % ch), lw=3)
+            self.ax.plot(
+                self.time_data,
+                self.channel_data[ch],
+                c=self.CHANNEL_COLORS[ch],
+                label=("ch%d" % ch),
+                lw=3,
+            )
         if self.show_trigger:
-            self.ax.plot(self.time_data, self.trigger_data, c='g',
-                         label='trigger', lw=3)
+            self.ax.plot(
+                self.time_data, self.trigger_data, c="g", label="trigger", lw=3
+            )
 
         if not show_pending:
-            left, width = .25, .5
-            bottom, height = .35, .8
+            left, width = 0.25, 0.5
+            bottom, height = 0.35, 0.8
             right = left + width
             top = bottom + height
-            self.ax.text(0.5 * (left + right), 0.5 * (bottom + top),
-                         'Measuring...', horizontalalignment='center',
-                         verticalalignment='center', fontsize=56, color='red',
-                         fontweight="heavy", alpha=.8, rotation=30,
-                         transform=self.fig.transFigure)
+            self.ax.text(
+                0.5 * (left + right),
+                0.5 * (bottom + top),
+                "Measuring...",
+                horizontalalignment="center",
+                verticalalignment="center",
+                fontsize=56,
+                color="red",
+                fontweight="heavy",
+                alpha=0.8,
+                rotation=30,
+                transform=self.fig.transFigure,
+            )
 
         self.fig.canvas.draw()
 
-    def update_plot(self, data, show_trigger=True,
-                    enabled_channels=DEFAULT_CHANNEL_CONFIG):
+    def update_plot(
+        self, data, show_trigger=True, enabled_channels=DEFAULT_CHANNEL_CONFIG
+    ):
         """
         Update plot
 
@@ -178,25 +212,40 @@ class ScalarsCanvas(BasePlotCanvas):
         for ch in range(4):
             self.channel_data[ch].append(data[ch])
             if enabled_channels[ch]:
-                self.ax.plot(self.time_data, self.channel_data[ch],
-                             c=self.CHANNEL_COLORS[ch],
-                             label=("ch%d" % ch), lw=2, marker='v')
+                self.ax.plot(
+                    self.time_data,
+                    self.channel_data[ch],
+                    c=self.CHANNEL_COLORS[ch],
+                    label=("ch%d" % ch),
+                    lw=2,
+                    marker="v",
+                )
 
         self.trigger_data.append(data[4])
 
         if self.show_trigger:
-            self.ax.plot(self.time_data, self.trigger_data,
-                         c=self.TRIGGER_COLOR,
-                         label='trg', lw=2, marker='x')
+            self.ax.plot(
+                self.time_data,
+                self.trigger_data,
+                c=self.TRIGGER_COLOR,
+                label="trg",
+                lw=2,
+                marker="x",
+            )
 
         try:
             # get count of active cannels
             channels = enabled_channels + [show_trigger]
             active_count = sum(channels)
 
-            self.ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-                           ncol=active_count, mode="expand", borderaxespad=0.,
-                           handlelength=2)
+            self.ax.legend(
+                bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+                loc=3,
+                ncol=active_count,
+                mode="expand",
+                borderaxespad=0.0,
+                handlelength=2,
+            )
         except Exception as e:
             self.logger.info("An error with the legend occurred: %s" % e)
             self.ax.legend(loc=2)
@@ -207,9 +256,13 @@ class ScalarsCanvas(BasePlotCanvas):
             self.trigger_data.remove(self.trigger_data[0])
             self.time_data.remove(self.time_data[0])
 
-        ma = max(max(self.channel_data[0]), max(self.channel_data[1]),
-                 max(self.channel_data[2]), max(self.channel_data[3]),
-                 max(self.trigger_data))
+        ma = max(
+            max(self.channel_data[0]),
+            max(self.channel_data[1]),
+            max(self.channel_data[2]),
+            max(self.channel_data[3]),
+            max(self.trigger_data),
+        )
 
         self.ax.set_ylim(0, ma * 1.1)
 
@@ -219,6 +272,7 @@ class ScalarsCanvas(BasePlotCanvas):
             self.ax.set_xlim(self.time_data[0], self.time_data[-1])
 
         self.fig.canvas.draw()
+
 
 class BaseHistogramCanvas(BasePlotCanvas):
     """
@@ -241,9 +295,9 @@ class BaseHistogramCanvas(BasePlotCanvas):
         # setup binning
         self.binning = np.asarray(binning)
         self.bincontent = np.zeros(len(self.binning))
-        self.hist_patches = self.ax.hist(np.array([self.binning[0] - 1]),
-                                         self.binning, fc=hist_color,
-                                         alpha=0.25)[2]
+        self.hist_patches = self.ax.hist(
+            np.array([self.binning[0] - 1]), self.binning, fc=hist_color, alpha=0.25
+        )[2]
         self.heights = []
         self.dimension = r"$\mu$s"
 
@@ -254,8 +308,7 @@ class BaseHistogramCanvas(BasePlotCanvas):
 
         # fixed xrange for histogram
         self.xmin = self.binning[0]
-        self.xmax = (self.binning[-1] +
-                     (self.binning[:-1] - self.binning[1:])[-1])
+        self.xmax = self.binning[-1] + (self.binning[:-1] - self.binning[1:])[-1]
 
     def update_plot(self, data):
         """
@@ -288,8 +341,8 @@ class BaseHistogramCanvas(BasePlotCanvas):
         for hist_bin in enumerate(tmp_hist):
             if hist_bin[1]:
                 self.hist_patches[hist_bin[0]].set_height(
-                    self.hist_patches[hist_bin[0]].get_height() +
-                    hist_bin[1])
+                    self.hist_patches[hist_bin[0]].get_height() + hist_bin[1]
+                )
 
         # we want to get the maximum for the ylims
         # self.heights contains the bincontent!
@@ -299,7 +352,7 @@ class BaseHistogramCanvas(BasePlotCanvas):
             self.heights.append(patch.get_height())
 
         self.logger.debug("Histogram patch heights %s" % self.heights)
-        self.ax.set_ylim(ymax=max([h+np.sqrt(h) for h in self.heights]) * 1.1)
+        self.ax.set_ylim(ymax=max([h + np.sqrt(h) for h in self.heights]) * 1.1)
         self.ax.set_ylim(ymin=0)
         self.ax.set_xlabel(self.xlabel)
         self.ax.set_ylabel(self.ylabel)
@@ -309,10 +362,9 @@ class BaseHistogramCanvas(BasePlotCanvas):
         del tmp_hist
 
         # try to add errorbars
-        bincenters = (self.binning[1:]+self.binning[:-1])/2.
+        bincenters = (self.binning[1:] + self.binning[:-1]) / 2.0
         for i, height in enumerate(self.heights):
-            self.ax.errorbar(bincenters[i], height,
-                             yerr=np.sqrt(height), color='b')
+            self.ax.errorbar(bincenters[i], height, yerr=np.sqrt(height), color="b")
 
         # some beautification
         self.ax.grid()
@@ -322,8 +374,9 @@ class BaseHistogramCanvas(BasePlotCanvas):
         self.ax.patches = self.hist_patches
         self.fig.canvas.draw()
 
-    def show_fit(self, bin_centers, bincontent, fitx, decay, p, covar,
-                 chisquare, nbins):
+    def show_fit(
+        self, bin_centers, bincontent, fitx, decay, p, covar, chisquare, nbins
+    ):
         """
         Plot the fit onto the diagram
 
@@ -349,9 +402,9 @@ class BaseHistogramCanvas(BasePlotCanvas):
         self.ax.plot(bin_centers, bincontent, "b^", fitx, decay(p, fitx), "b-")
 
         # print fit function formula start
-        #x = bin_centers
-        #y = bincontent
-        #poly = pl.polyfit(x, y, 2)
+        # x = bin_centers
+        # y = bincontent
+        # poly = pl.polyfit(x, y, 2)
 
         # def poly2latex(poly, variable="x", width=2):
         #  t = ["{0:0.{width}f}"]
@@ -365,11 +418,11 @@ class BaseHistogramCanvas(BasePlotCanvas):
 
         #  return "${}$".format("+".join(f()))
 
-        #self.ax.plot(x, y, "o", alpha=0.4)
-        #x2 = np.linspace(-2, 2, 100)
-        #y2 = np.polyval(poly, x2)
-        #self.ax.plot(x2, y2, lw=2, color="r")
-        #self.ax.text(x2[5], y2[5], poly2latex(poly), fontsize=16)
+        # self.ax.plot(x, y, "o", alpha=0.4)
+        # x2 = np.linspace(-2, 2, 100)
+        # y2 = np.polyval(poly, x2)
+        # self.ax.plot(x2, y2, lw=2, color="r")
+        # self.ax.text(x2[5], y2[5], poly2latex(poly), fontsize=16)
         # print fit function formula end
 
         # FIXME: this seems to crop the histogram
@@ -387,31 +440,66 @@ class BaseHistogramCanvas(BasePlotCanvas):
                 error.append(0.00)
 
         perr_leastsq = np.array(error)
+        # TODO: Debug this with a real setup
 
-        try:
-            if chisquare / (nbins-len(p)) > 10000:
-                self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
-                                         " chisq/ndf=%.4g") %
-                                (p[2], perr_leastsq[2], self.dimension,
-                                 chisquare / (nbins-len(p)))), loc=1)
-            self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
-                                     " chisq/ndf=%4.2f") %
-                            (p[2], perr_leastsq[2], self.dimension,
-                             chisquare / (nbins-len(p)))), loc=1)
-        except TypeError:
-            if chisquare / (nbins-len(p)) > 10000:
-                self.ax.legend(("Data", ("Fit: (%4.2f $\pm$ %4.2f) %s \n" +
-                                         " chisq/ndf=%.4g") %
-                                (p[2], perr_leastsq[2], self.dimension,
-                                 chisquare / (nbins-len(p)))), loc=1)
-            self.logger.warn("Covariance Matrix is 'None', could " +
-                             "not calculate fit error!")
-            self.ax.legend(("Data", ("Fit: (%4.2f) %s \n " +
-                                     " chisq/ndf=%4.2f") %
-                            (p[2], self.dimension,
-                             chisquare / (nbins-len(p)))), loc=1)
+        # try:
+        #     if chisquare > 10000:
+        #         self.ax.legend(
+        #             (
+        #                 "Data",
+        #                 ("Fit: (%4.2f $\pm$ %4.2f) %s \n" + " chisq/ndf=%.4g")
+        #                 % (
+        #                     p[2],
+        #                     perr_leastsq[2],
+        #                     self.dimension,
+        #                     chisquare / (nbins - len(p)),
+        #                 ),
+        #             ),
+        #             loc=1,
+        #         )
+            # self.ax.legend(
+            #     (
+            #         "Data",
+            #         ("Fit: (%4.2f $\pm$ %4.2f) %s \n" + " chisq/ndf=%4.2f")
+            #         % (
+            #             p[2],
+            #             perr_leastsq[2],
+            #             self.dimension,
+            #             chisquare / (nbins - len(p)),
+            #         ),
+            #     ),
+            #     loc=1,
+            # )
+        # except TypeError:
+        #     if chisquare / (nbins - len(p)) > 10000:
+        #         self.ax.legend(
+        #             (
+        #                 "Data",
+        #                 ("Fit: (%4.2f $\pm$ %4.2f) %s \n" + " chisq/ndf=%.4g")
+        #                 % (
+        #                     p[2],
+        #                     perr_leastsq[2],
+        #                     self.dimension,
+        #                     chisquare / (nbins - len(p)),
+        #                 ),
+        #             ),
+        #             loc=1,
+        #         )
+        #     self.logger.warn(
+        #         "Covariance Matrix is 'None', could " + "not calculate fit error!"
+        #     )
+            # self.ax.legend(
+            #     (
+            #         "Data",
+            #         ("Fit: (%4.2f) %s \n " + " chisq/ndf=%4.2f")
+            #         % (p[2], self.dimension, chisquare / (nbins - len(p))),
+            #     ),
+            #     loc=1,
+            # )
 
         self.fig.canvas.draw()
+        return (p, error)
+
 class PulseWidthCanvas(BaseHistogramCanvas):
     """
     A simple histogram for the use with pulse width measurement
@@ -425,9 +513,18 @@ class PulseWidthCanvas(BaseHistogramCanvas):
 
     def __init__(self, parent, logger, hist_color="r", title=None):
         BaseHistogramCanvas.__init__(
-            self, parent, logger, np.linspace(0., 100, 30),
-            hist_color=hist_color, xmin=0., xmax=100, ymin=0, ymax=2,
-            ylabel="Events", xlabel="Pulse Width (ns)")
+            self,
+            parent,
+            logger,
+            np.linspace(0.0, 100, 30),
+            hist_color=hist_color,
+            xmin=0.0,
+            xmax=100,
+            ymin=0,
+            ymax=2,
+            ylabel="Events",
+            xlabel="Pulse Width (ns)",
+        )
         self.ax_title = title if title is not None else "Pulse Widths"
         self.ax.set_title(self.ax_title)
         self.ax.figure.tight_layout()
@@ -439,3 +536,26 @@ class PulseWidthCanvas(BaseHistogramCanvas):
         self.ax.set_title(self.ax_title)
         self.ax.figure.tight_layout()
         self.fig.canvas.draw()
+
+
+class LifetimeCanvas(BaseHistogramCanvas):
+    """
+    A simple histogram for the use with mu lifetime
+    measurement
+
+    :param parent: parent widget
+    :param logger: logger object
+    :type logger: logging.Logger
+    :param binning: the binning to use for this canvas
+    :type binning: list or tuple or numpy.ndarray
+    """
+
+    def __init__(self, parent, logger, binning=(0, 10, 21)):
+        BaseHistogramCanvas.__init__(
+            self,
+            parent,
+            logger,
+            np.linspace(binning[0], binning[1], binning[2]),
+            xlabel="Time between Pulses ($\mu$s)",
+            ylabel="Events",
+        )

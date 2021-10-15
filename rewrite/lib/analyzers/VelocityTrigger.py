@@ -10,7 +10,7 @@ class VelocityTrigger:
         self.logger = logger
         self.logger.info("Velocity trigger initialized")
 
-    def trigger(self, pulses, upper_channel=1, lower_channel=2):
+    def trigger(self, pulses, upper_channel=1, lower_channel=2, debug=False):
         """
         Time difference will be calculated t(upper_channel) - t(lower_channel)
 
@@ -36,10 +36,11 @@ class VelocityTrigger:
                 pulse_width_lower = (pulses[lower_channel][0][1] -
                                      pulses[lower_channel][0][0])
 
-                # THIS is only for debugging !!! reenable in production
-                # if (pulse_width_upper - pulse_width_lower < -15. or
-                #         pulse_width_upper - pulse_width_lower > 45.):
-                #     return None
+                # Comment this out for debugging
+                if not debug:
+                    if (pulse_width_upper - pulse_width_lower < -15. or
+                            pulse_width_upper - pulse_width_lower > 45.):
+                        return None
             else:
                 return None
 

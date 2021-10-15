@@ -15,6 +15,7 @@ import numpy as np
 from time import time
 import zmq
 from ..analyzers.VelocityTrigger import VelocityTrigger
+from ..analyzers.DecayTrigger import DecayTriggerThorough
 from ..analyzers.PulseAnalyzer import PulseAnalyzer
 from ..analyzers.fit import gaussian_fit
 
@@ -66,6 +67,25 @@ class PulseWorker(QObject):
         self._PulseAnalyzer.measure_pulses(meastime=self.daq_time)
 
 class VelocityWorker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(tuple)
+    progressBar = pyqtSignal(float)
+    daq_time = 0.5
+
+    def __init__(self, server):
+        QObject.__init__(self)
+        self._DAQServer = server
+        self._PulseAnalyzer = PulseAnalyzer(logger=None, headless=False)
+        self._PulseAnalyzer.server = self._DAQServer
+        self._PulseAnalyzer.progress = self.progress
+        self._PulseAnalyzer.finished = self.finished
+        self._PulseAnalyzer.progressBar = self.progressBar
+
+    def run(self):
+        self._PulseAnalyzer.measure_pulses(meastime=self.daq_time)
+
+
+class LifetimeWorker(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(tuple)
     progressBar = pyqtSignal(float)
@@ -287,6 +307,107 @@ class Ui(QtWidgets.QMainWindow):
         self.velocityMeasTime = self.findChild(
             QtWidgets.QDoubleSpinBox, "velocityMeasTime"
         )
+
+        # Get values for lifetime
+        self.ckLifetimeCH0Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckLifetimeCH0Enabled"
+        )
+        self.LifetimeCH0Voltage = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeCH0Voltage"
+        )
+        self.ckLifetimeCH1Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckLifetimeCH1Enabled"
+        )
+        self.LifetimeCH1Voltage = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeCH1Voltage"
+        )
+        self.ckLifetimeCH2Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckLifetimeCH2Enabled"
+        )
+        self.LifetimeCH2Voltage = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeCH2Voltage"
+        )
+        self.ckLifetimeCH3Enabled = self.findChild(
+            QtWidgets.QCheckBox, "ckLifetimeCH3Enabled"
+        )
+        self.LifetimeCH3Voltage = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeCH3Voltage"
+        )
+
+
+        self.btLifetimeStart = self.findChild(
+            QtWidgets.QPushButton, "btnLifetimeStart"
+        )
+        self.btLifetimeStart.clicked.connect(
+            self.btnLifetimeStartClicked
+        )
+        self.btLifetimeStop = self.findChild(
+            QtWidgets.QPushButton, "btnLifetimeStop"
+        )
+        self.btLifetimeStop.clicked.connect(
+            self.btnLifetimeStopClicked
+        )
+
+        self.btnLifetimeFit = self.findChild(
+            QtWidgets.QPushButton, "btnLifetimeFit"
+        )
+        self.btnLifetimeFit.clicked.connect(
+            self.btnLifetimeFitClicked
+        )
+
+        self.lifetimeWidget = self.findChild(
+            QtWidgets.QWidget, "LifetimeWidget"
+        )
+
+        self.LifetimeMeasurementTime = self.findChild(
+            QtWidgets.QDoubleSpinBox, "LifetimeMeasurementTime"
+        )
+
+        self.LifetimeMinSpace = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeMinSpace"
+        )
+
+        self.LifetimeMinWidth = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeMinWidth"
+        )
+
+        self.LifetimeMaxWidth = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeMaxWidth"
+        )
+
+        self.LifeteimeMinWidtheminus = self.findChild(
+            QtWidgets.QSpinBox, "LifeteimeMinWidtheminus"
+        )
+
+        self.LifetimeMaxWidtheminus = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeMaxWidtheminus"
+        )
+
+        self.LifetimeMounCount = self.findChild(
+            QtWidgets.QLineEdit, "LifetimeMounCount"
+        )
+
+        self.LifetimeLastMuon = self.findChild(
+            QtWidgets.QLineEdit, "LifetimeLastMuon"
+        )
+
+        self.LifetimeFitMin = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeFitMin"
+        )
+
+        self.LifetimeFitMax = self.findChild(
+            QtWidgets.QSpinBox, "LifetimeFitMax"
+        )
+
+        self.LifetimeFitParameters = self.findChild(
+            QtWidgets.QPlainTextEdit, "LifetimeFitParameters"
+        )
+
+        self.lifetimeProgress = self.findChild(
+            QtWidgets.QProgressBar, "lifetimeProgress"
+        )
+
+        self.lifetimeProgress.setVisible(False)
 
         self.show()
 
@@ -643,7 +764,7 @@ class Ui(QtWidgets.QMainWindow):
 
         self.thread = QThread()
         self.worker = VelocityWorker(self._DAQServer)
-        self.worker.daq_time = self.velocityMeasTime.value()
+        self.worker.daq_time = float(self.velocityMeasTime.value())
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)
@@ -705,7 +826,7 @@ class Ui(QtWidgets.QMainWindow):
         self.mu_file.close()
 
     def btnVelocityFitClicked(self):
-        self.fit_range = (self.VelocityFitMin.value(), self.VelocityFitMax.value())
+        self.fit_range = (float(self.VelocityFitMin.value()), float(self.VelocityFitMax.value()))
         logging.getLogger().debug("Using fit range of %s" % repr(self.fit_range))
         fit_results = gaussian_fit(
             bincontent=np.asarray(self.velocity_canvas.heights),
@@ -720,6 +841,214 @@ class Ui(QtWidgets.QMainWindow):
             mu:{round(params[0][2],2)} +- {round(params[1][2],2)}
              """)
 
+
+    def setupLifetimeChannels(self):
+        self.ch0enabled = self.ckLifetimeCH0Enabled.isChecked()
+        self.ch1enabled = self.ckLifetimeCH1Enabled.isChecked()
+        self.ch2enabled = self.ckLifetimeCH2Enabled.isChecked()
+        self.ch3enabled = self.ckLifetimeCH3Enabled.isChecked()
+
+        self.ch0Threshold = int(self.LifetimeCH0Voltage.value())
+        self.ch1Threshold = int(self.LifetimeCH1Voltage.value())
+        self.ch2Threshold = int(self.LifetimeCH2Voltage.value())
+        self.ch3Threshold = int(self.LifetimeCH3Voltage.value())
+
+        print(f"Ch0 config: {self.ch0enabled} -> {self.ch0Threshold}")
+        print(f"Ch1 config: {self.ch1enabled} -> {self.ch1Threshold}")
+        print(f"Ch2 config: {self.ch2enabled} -> {self.ch2Threshold}")
+        print(f"Ch3 config: {self.ch3enabled} -> {self.ch3Threshold}")
+        self._DAQServer.setup_channel(
+            self.ch0enabled,
+            self.ch1enabled,
+            self.ch2enabled,
+            self.ch3enabled,
+            "twofold",
+        )
+        self._DAQServer.set_threashold(
+            self.ch0Threshold, self.ch1Threshold, self.ch2Threshold, self.ch3Threshold
+        )
+
+    def btnLifetimeStartClicked(self):
+        print("start clicked")
+        self.min_single_pulse_width = 0
+        self.max_single_pulse_width = 100000  # inf
+        self.min_double_pulse_width = 0
+        self.max_double_pulse_width = 100000  # inf
+        self.muon_counter = 0
+        self.single_pulse_channel = 0
+        self.double_pulse_channel = 1
+        self.veto_pulse_channel = 2
+        self.decay_min_time = 0
+
+        # ignore first bin because of after pulses,
+        # see https://github.com/achim1/muonic/issues/39
+        self.binning = (0, 10, 21)
+
+        # default fit range
+        self.fit_range = (1.5, 10.)
+
+        self.event_data = []
+        self.last_event_time = None
+        self.active_since = None
+
+         # measurement duration and start time
+        self.measurement_duration = datetime.timedelta()
+        self.start_time = datetime.datetime.utcnow()
+
+        self.mu_file = WrappedFile(f"{self.start_time}_mu.txt")
+
+
+        self.previous_coinc_time_03 = "00"
+        self.previous_coinc_time_02 = "0A"
+
+        self.lifetime_canvas = LifetimeCanvas(self.lifetimeWidget, logging.getLogger(), binning=self.binning)
+        toolbar = NavigationToolbar(self.lifetime_canvas, self)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(toolbar)
+        layout.addWidget(self.lifetime_canvas)
+        self.lifetimeWidget.setLayout(layout)
+        self.lifetimeProgress.setVisible(False)
+        self.show()
+        self.lastUpdate = time()
+
+        # decay trigger
+        self.trigger = DecayTriggerThorough(logging.getLogger())
+
+        try:
+            self._DAQServer = DAQServer()
+        except zmq.error.ZMQError:
+            print("reusing old server")
+         # configure DAQ card with coincidence/veto settings
+        self.setupLifetimeChannels()
+        self._DAQServer.do("DC")
+        self._DAQServer.do("CE")
+        self._DAQServer.do("WC 03 04")
+        self._DAQServer.do("WC 02 0A")
+
+        # this should set the veto to none (because we have a
+        # software veto) and the coincidence to single,
+        # so we take all pulses
+        self._DAQServer.do("WC 00 0F")
+
+        self.start_time = datetime.datetime.utcnow()
+        self.mu_file.open("a")
+        self.mu_file.write("# new decay measurement run from: %s\n" %
+                            self.start_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
+
+
+        self.thread = QThread()
+        self.worker = LifetimeWorker(self._DAQServer)
+        self.worker.daq_time = float(self.LifetimeMeasurementTime.value())
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.lifeteimFinished)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.progress.connect(self.reportProgressLifetime)
+        self.worker.progressBar.connect(self.reportProgressBarLifetime)
+        self.thread.start()
+
+    def lifeteimFinished(self):
+        self.LifetimeStop()
+        self.lifetimeProgress.setValue(100)
+        pass
+
+    def calculateDecay(self, pulses):
+        """
+        Trigger muon decay
+
+        :param pulses: extracted pulses
+        :type pulses: list
+        :returns: None
+        """
+        decay = self.trigger.trigger(
+            pulses, single_channel=self.single_pulse_channel+1,
+            double_channel=self.double_pulse_channel+1,
+            veto_channel=self.veto_pulse_channel+1,
+            min_decay_time=float(self.LifetimeMinSpace.value()),
+            min_single_pulse_width=self.min_single_pulse_width,
+            max_single_pulse_width=self.max_single_pulse_width,
+            min_double_pulse_width=self.min_double_pulse_width,
+            max_double_pulse_width=self.max_double_pulse_width)
+
+        if decay is not None:
+            when = datetime.datetime.utcnow()
+            self.event_data.append((decay / 1000,
+                                    when.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]))
+            self.muon_counter += 1
+            self.last_event_time = when
+            logging.getLogger().info("We have found a decaying muon with a " +
+                             "decay time of %f at %s" % (decay, when))
+
+    def reportProgressLifetime(self, data):
+        print(f"Got lifetime data:  {data}")
+        self.calculateDecay(data)
+        if not self.event_data:
+            return
+
+        self.LifetimeMounCount.setText(f"{self.muon_counter}")
+        self.LifetimeLastMuon.setText(f'{self.last_event_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]}')
+
+        if self.thread.isRunning():
+            t = time()
+            dt = t- self.lastUpdate
+            if dt>10:
+                decay_times = [decay_time[0] for decay_time in self.event_data]
+                print(f"update data: {decay_times} -> {self.event_data}")
+                self.lifetime_canvas.update_plot(decay_times)
+                self.lastUpdate = t
+                for decay in self.event_data:
+                    decay_time = decay[1]  # .replace(' ', '_')
+                    self.mu_file.write("%s Decay %s\n" % (repr(decay_time),
+                                                        repr(decay[0])))
+                self.event_data = []
+
+
+
+
+
+    def reportProgressBarLifetime(self, progress):
+        print(f"Lifetime progress: {progress}")
+        self.lifetimeProgress.setVisible(True)
+        self.lifetimeProgress.setValue(progress)
+
+    def LifetimeStop(self):
+        stop_time = datetime.datetime.utcnow()
+        self.measurement_duration += stop_time - self.start_time
+
+        # reset coincidence times
+        self._DAQServer.do("WC 03 " + self.previous_coinc_time_03)
+        self._DAQServer.do("WC 02 " + self.previous_coinc_time_02)
+
+        logging.getLogger().info("Muon decay mode now deactivated, returning to " +
+                         "previous setting (if available)")
+
+        self.mu_file.write("# stopped run on: %s\n" %
+                           stop_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
+        self.mu_file.close()
+
+    def btnLifetimeStopClicked(self):
+        self.LifetimeStop()
+        print("stop clicked")
+
+    def btnLifetimeFitClicked(self):
+        self.fit_range = (float(self.LifetimeFitMin.value()), self.LifetimeFitMax.value())
+        logging.getLogger().debug("Using fit range of %s" % repr(self.fit_range))
+        fit_results = gaussian_fit(
+            bincontent=np.asarray(self.lifetime_canvas.heights),
+            binning=self.binning, fitrange=self.fit_range)
+
+        print(f"fitresult: {fit_results}")
+        if fit_results is not None:
+            params = self.lifetime_canvas.show_fit(*fit_results)
+            self.LifetimeFitParameters.setPlainText(f"""
+            A:{round(params[0][0],2)} +- {round(params[1][0],2)}
+            sigma:{round(params[0][1],2)} +- {round(params[1][1],2)}
+            mu:{round(params[0][2],2)} +- {round(params[1][2],2)}
+             """)
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
     """

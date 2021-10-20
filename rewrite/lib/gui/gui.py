@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTextCursor
 import sys
 import os
 import threading
@@ -11,6 +12,7 @@ import multiprocessing
 import subprocess
 import logging
 import datetime
+import jsonpickle
 import numpy as np
 from time import time
 import zmq
@@ -102,6 +104,28 @@ class LifetimeWorker(QObject):
 
     def run(self):
         self._PulseAnalyzer.measure_pulses(meastime=self.daq_time)
+
+class DAQOutputWorker(QObject):
+    i = 0
+    progress = pyqtSignal(str)
+    def __init__(self, server, output):
+        QObject.__init__(self)
+        self._DAQServer = server
+        self.output = output
+        self.ctx = zmq.Context()
+        self.sock = self.ctx.socket(zmq.SUB)
+        self.sock.connect("tcp://127.0.0.1:1234")
+        self.sock.subscribe("")
+
+    def run(self):
+        while True:
+            msg = self.sock.recv_string()
+            obj = jsonpickle.decode(msg)
+            #print(f"OBJ Type: {type(obj)}")
+            text = str(obj)
+            if text != "":
+                self.progress.emit(text + '\n')
+
 
 class Ui(QtWidgets.QMainWindow):
     serverTask = threading.Thread()
@@ -409,6 +433,48 @@ class Ui(QtWidgets.QMainWindow):
 
         self.lifetimeProgress.setVisible(False)
 
+        self.DAQOutput = self.findChild(
+            QtWidgets.QPlainTextEdit, "DAQOutput"
+        )
+
+        self.DAQCommand = self.findChild(
+            QtWidgets.QLineEdit, "DAQCommand"
+        )
+
+        self.btnSendDAQCommand = self.findChild(
+            QtWidgets.QPushButton, "btnSendDAQCommand"
+        )
+        self.btnSendDAQCommand.clicked.connect(
+            self.btnSendDAQCommandClicked
+        )
+
+        self.GPSText = self.findChild(
+            QtWidgets.QPlainTextEdit, "GPSText"
+        )
+
+        self.btnShowGPS = self.findChild(
+            QtWidgets.QPushButton, "btnShowGPS"
+        )
+        self.btnShowGPS.clicked.connect(
+            self.btnShowGPSClicked
+        )
+
+        try:
+            self._DAQServer = DAQServer()
+        except zmq.error.ZMQError:
+            print("reusing old server")
+
+        self.DAQThread = QThread()
+        self.DAQWorker = DAQOutputWorker(self._DAQServer, self.DAQOutput)
+        self.DAQWorker.moveToThread(self.DAQThread)
+
+        self.DAQThread.started.connect(self.DAQWorker.run)
+        self.DAQWorker.progress.connect(self.updateDAQ)
+        # self.DAQWorker.finished.connect(self.DAQThread.quit)
+        # self.DAQWorker.finished.connect(self.DAQWorker.deleteLater)
+        # self.DAQThread.finished.connect(self.DAQThread.deleteLater)
+
+        self.DAQThread.start()
         self.show()
 
     def shutdownDAQServer(self):
@@ -785,7 +851,7 @@ class Ui(QtWidgets.QMainWindow):
 
         flight_time = self.trigger.trigger(pulses,
                                            upper_channel=self.upper_channel+1,
-                                           lower_channel=self.lower_channel+1)
+                                           lower_channel=self.lower_channel+1, debug=False)
 
         if flight_time is not None and flight_time > 0:
             self.event_data.append(flight_time)
@@ -1049,6 +1115,21 @@ class Ui(QtWidgets.QMainWindow):
             sigma:{round(params[0][1],2)} +- {round(params[1][1],2)}
             mu:{round(params[0][2],2)} +- {round(params[1][2],2)}
              """)
+
+    def btnSendDAQCommandClicked(self):
+        try:
+            self._DAQServer = DAQServer()
+        except zmq.error.ZMQError:
+            print("reusing old server")
+        self._DAQServer.do(self.DAQCommand.text())
+
+
+    def btnShowGPSClicked(self):
+        print("GPS clicked")
+
+    def updateDAQ(self, msg):
+        self.DAQOutput.moveCursor(QTextCursor.End)
+        self.DAQOutput.insertPlainText(msg)
 
 class RequestHandler(SimpleXMLRPCRequestHandler):
     """

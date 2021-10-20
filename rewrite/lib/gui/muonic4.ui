@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="MainTab">
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="MainTabOpenSudies">
        <attribute name="title">
@@ -1262,7 +1262,7 @@
         <item>
          <widget class="QTabWidget" name="SubTabLifetime">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_14">
            <attribute name="title">
@@ -2007,7 +2007,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
-         <widget class="QTableWidget" name="tableWidget_12"/>
+         <widget class="QPlainTextEdit" name="DAQOutput"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_15">
@@ -2019,59 +2019,16 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit"/>
+           <widget class="QLineEdit" name="DAQCommand"/>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_9">
+           <widget class="QPushButton" name="btnSendDAQCommand">
             <property name="text">
              <string>Send</string>
             </property>
            </widget>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QWidget" name="widget_6" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_13">
-           <item>
-            <spacer name="horizontalSpacer_9">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>1006</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_13">
-             <item>
-              <widget class="QCheckBox" name="checkBox_21">
-               <property name="layoutDirection">
-                <enum>Qt::RightToLeft</enum>
-               </property>
-               <property name="text">
-                <string>Write Status Line</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkBox_22">
-               <property name="layoutDirection">
-                <enum>Qt::RightToLeft</enum>
-               </property>
-               <property name="text">
-                <string>Write DAQ File</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
         </item>
        </layout>
       </widget>
@@ -2081,7 +2038,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
-         <widget class="QTableWidget" name="tableWidget_13"/>
+         <widget class="QPlainTextEdit" name="GPSText"/>
         </item>
         <item>
          <widget class="QWidget" name="widget_7" native="true">
@@ -2100,7 +2057,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_10">
+            <widget class="QPushButton" name="btnShowGPS">
              <property name="text">
               <string>Show GPS</string>
              </property>

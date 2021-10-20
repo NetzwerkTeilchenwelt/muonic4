@@ -459,6 +459,17 @@ class Ui(QtWidgets.QMainWindow):
             self.btnShowGPSClicked
         )
 
+        self.GPSDateTime = self.findChild(QtWidgets.QLineEdit, "GPSDateTime")
+        self.Status = self.findChild(QtWidgets.QLineEdit, "GPSStatus")
+        self.PosFix = self.findChild(QtWidgets.QLineEdit, "GPSPosFix")
+        self.Latitude = self.findChild(QtWidgets.QLineEdit, "GPSLatitude")
+        self.Longitude = self.findChild(QtWidgets.QLineEdit, "GPSLongitude")
+        self.Altitude = self.findChild(QtWidgets.QLineEdit, "GPSAltitude")
+        self.NSats = self.findChild(QtWidgets.QLineEdit, "GPSNSats")
+        self.PPSDelay = self.findChild(QtWidgets.QLineEdit, "GPSPPSDelay")
+        self.FPGATime = self.findChild(QtWidgets.QLineEdit, "GPSFPGATime")
+        self.ChkSumErr = self.findChild(QtWidgets.QLineEdit, "GPSChkSumErr")
+
         try:
             self._DAQServer = DAQServer()
         except zmq.error.ZMQError:
@@ -620,7 +631,8 @@ class Ui(QtWidgets.QMainWindow):
             self.rate_fields[i].setText("%.3f" % (data[i] % data[-1]))
 
     def btnOpenStudiesRateStopClicked(self):
-        pass
+        self.thread.quit()
+
 
     def btnOpenStudiesPulseStartClicked(self):
         print("Starting")
@@ -706,7 +718,8 @@ class Ui(QtWidgets.QMainWindow):
         self.thread.start()
 
     def btnOpenStudiesPulseStopClicked(self):
-        pass
+        self.thread.quit()
+
 
     def reportProgressPulse(self, data):
         # Pulsedata: (3513.99260384, [], [(13.75, 66.25)], [], [])
@@ -843,7 +856,7 @@ class Ui(QtWidgets.QMainWindow):
         self.thread.start()
 
     def btnVelocityStopClicked(self):
-        print("stop clicked")
+        self.thread.quit()
 
     def calculateVelocity(self, pulses):
         if pulses is None:
@@ -1098,7 +1111,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def btnLifetimeStopClicked(self):
         self.LifetimeStop()
-        print("stop clicked")
+        self.thread.quit()
 
     def btnLifetimeFitClicked(self):
         self.fit_range = (float(self.LifetimeFitMin.value()), self.LifetimeFitMax.value())
@@ -1125,7 +1138,31 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def btnShowGPSClicked(self):
-        print("GPS clicked")
+        try:
+            self._DAQServer = DAQServer()
+        except zmq.error.ZMQError:
+            print("reusing old server")
+        self.ctx = zmq.Context()
+        self.sock = self.ctx.socket(zmq.SUB)
+        self.sock.connect("tcp://127.0.0.1:1234")
+        self.sock.subscribe("")
+        self._DAQServer.get_gps_info()
+        msg = self.sock.recv_string()
+        obj = jsonpickle.decode(msg)
+        print(f"Got GPS: {obj}")
+        obj = jsonpickle.decode(obj.payload)
+
+        self.GPSDateTime.setText(str(obj.GPSDateTime))
+        self.Status.setText(str(obj.Status))
+        self.PosFix.setText(str(obj.PosFix))
+        self.Latitude.setText(str(obj.Latitude))
+        self.Longitude.setText(str(obj.Longitude))
+        self.Altitude.setText(str(obj.Altitude))
+        self.NSats.setText(str(obj.NSats))
+        self.PPSDelay.setText(str(obj.PPSDelay))
+        self.FPGATime.setText(str(obj.FPGATime))
+        self.ChkSumErr.setText(str(obj.ChkSumErr))
+
 
     def updateDAQ(self, msg):
         self.DAQOutput.moveCursor(QTextCursor.End)

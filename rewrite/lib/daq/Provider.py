@@ -36,7 +36,7 @@ class DAQProvider(object):
 
     def get(self, *args):
         """
-        Get data from the DAQ card. 
+        Get data from the DAQ card.
 
         Raises DAQIOError if the queue is empty.
 
@@ -76,7 +76,7 @@ class DAQProvider(object):
 
     def validate_line(self, line):
         """
-        Validate line againt regex pattern. 
+        Validate line againt regex pattern.
         Returns None if the provided line is invalid or the line if it is valid.
 
         :param line: line to validate

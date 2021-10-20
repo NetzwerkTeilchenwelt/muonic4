@@ -11,6 +11,7 @@ class RecordType(IntEnum):
     TEMPERATURE = 2
     PRESSURE = 3
     COUNTER = 4
+    GPS = 5
 
 
 class Record(object):

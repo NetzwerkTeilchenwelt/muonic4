@@ -1139,6 +1139,6 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ("/RPC2",)
 
 
-app = QtWidgets.QApplication(sys.argv)
-window = Ui()
-app.exec_()
+# app = QtWidgets.QApplication(sys.argv)
+# window = Ui()
+# app.exec_()

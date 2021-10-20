@@ -36,7 +36,8 @@ from matplotlib.backends.backend_qt5agg import (
 class RateWorker(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(list)
-    daq_time = 10.0
+    daq_time = 1.0
+    readout_time = 10.0
 
     def __init__(self, server):
         QObject.__init__(self)
@@ -47,7 +48,7 @@ class RateWorker(QObject):
         self._RateAnalyser.finished = self.finished
 
     def run(self):
-        self._RateAnalyser.measure_rates(timewindow=self.daq_time, meastime=1.0)
+        self._RateAnalyser.measure_rates(timewindow=self.readout_time, meastime=self.daq_time)
 
 
 class PulseWorker(QObject):
@@ -205,6 +206,10 @@ class Ui(QtWidgets.QMainWindow):
 
         self.OpenStudiesReadoutInterval = self.findChild(
             QtWidgets.QDoubleSpinBox, "OpenStudiesReadoutInterval"
+        )
+
+        self.OpenStudiesMeasurementTime = self.findChild(
+            QtWidgets.QDoubleSpinBox, "OpenStudiesMeasurementTime"
         )
         # Get trigger window for open studies
         self.OpenStudiesTriggerWindow = self.findChild(
@@ -557,7 +562,8 @@ class Ui(QtWidgets.QMainWindow):
 
         # info fields
         self.start_time = datetime.datetime.utcnow().strftime("%d.%m.%Y %H:%M:%S")
-        self.daq_time = self.OpenStudiesReadoutInterval.value()
+        self.daq_time = self.OpenStudiesMeasurementTime.value()
+        self.readout_time = self.OpenStudiesReadoutInterval.value()
         self.max_rate = 0
         self.updateRateInfo()
 
@@ -570,6 +576,7 @@ class Ui(QtWidgets.QMainWindow):
 
         self.worker = RateWorker(self._DAQServer)
         self.worker.daq_time = self.daq_time
+        self.worker.readout_time = self.readout_time
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)
@@ -706,6 +713,8 @@ class Ui(QtWidgets.QMainWindow):
         self.lastUpdate = time()
         self.thread = QThread()
         self.worker = PulseWorker(self._DAQServer)
+        self.daq_time = self.OpenStudiesMeasurementTime.value()
+        self.worker.daq_time = self.daq_time
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)

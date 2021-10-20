@@ -36,6 +36,7 @@ from matplotlib.backends.backend_qt5agg import (
 class RateWorker(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(list)
+    progressbar = pyqtSignal(float)
     daq_time = 1.0
     readout_time = 10.0
 
@@ -215,6 +216,11 @@ class Ui(QtWidgets.QMainWindow):
         self.OpenStudiesTriggerWindow = self.findChild(
             QtWidgets.QSpinBox, "OpenStudiesTriggerWindow"
         )
+
+        self.pRates = self.findChild(
+            QtWidgets.QProgressBar, "pRates"
+        )
+        self.pRates.setVisible(False)
 
         self.lnRateStartedAt = self.findChild(QtWidgets.QLineEdit, "lnRateStartedAt")
         self.lnRateTimeDAQ = self.findChild(QtWidgets.QLineEdit, "lnRateTimeDAQ")
@@ -582,8 +588,12 @@ class Ui(QtWidgets.QMainWindow):
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.rateFinished)
         self.thread.finished.connect(self.thread.deleteLater)
+
         self.worker.progress.connect(self.reportProgressRate)
+        self.worker.progressbar.connect(self.reportProgressRate)
+        self.pRates.setVisible(True)
         self.thread.start()
         # layout.addWidget(self.scalars_monitor)
         # self.RateWidget.addWidget()
@@ -596,6 +606,12 @@ class Ui(QtWidgets.QMainWindow):
         # self.RateWidget.calculate()
         # self.RateWidget.update()
         print("... started")
+
+    def reportProgressRate(self, p):
+        self.pRates.setValue(float(p))
+
+    def rateFinished(self):
+        self.pRates.setValue(100.0)
 
     def setupTable(self):
         self.table.setEnabled(False)

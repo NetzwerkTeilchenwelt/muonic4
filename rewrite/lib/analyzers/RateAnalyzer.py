@@ -143,6 +143,8 @@ class RateAnalyzer():
                     if not x.isAlive():
                         x.start()
                     # self.write_rates_to_file()
+                    if not self.headless:
+                        self.progressbar.emit(100*t/(meastime*60) )
                     self.logger.info('Measurement progress: %f %%' %
                                      (100*t/(meastime*60)))
                     t += self.delta_time

@@ -148,6 +148,7 @@ class RateAnalyzer():
                     self.logger.info('Measurement progress: %f %%' %
                                      (100*t/(meastime*60)))
                     t += self.delta_time
+
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
                 sleep(5)
@@ -157,6 +158,7 @@ class RateAnalyzer():
                 self.finished.emit()
 
             except (KeyboardInterrupt, AttributeError, RuntimeError, NameError, SystemExit):
+
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
                 sleep(5)

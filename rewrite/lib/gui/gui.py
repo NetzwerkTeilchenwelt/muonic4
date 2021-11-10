@@ -46,6 +46,7 @@ class RateWorker(QObject):
         self._RateAnalyser = RateAnalyzer(logger=None, headless=False)
         self._RateAnalyser.server = self._DAQServer
         self._RateAnalyser.progress = self.progress
+        self._RateAnalyser.progressbar = self.progressbar
         self._RateAnalyser.finished = self.finished
 
     def run(self):
@@ -592,7 +593,7 @@ class Ui(QtWidgets.QMainWindow):
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.worker.progress.connect(self.reportProgressRate)
-        self.worker.progressbar.connect(self.reportProgressRate)
+        self.worker.progressbar.connect(self.reportProgressBarRate)
         self.pRates.setVisible(True)
         self.thread.start()
         # layout.addWidget(self.scalars_monitor)
@@ -607,7 +608,7 @@ class Ui(QtWidgets.QMainWindow):
         # self.RateWidget.update()
         print("... started")
 
-    def reportProgressRate(self, p):
+    def reportProgressBarRate(self, p):
         self.pRates.setValue(float(p))
 
     def rateFinished(self):

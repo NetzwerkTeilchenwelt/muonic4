@@ -15,7 +15,7 @@ class PulseAnalyzer():
     Class that manages the measurement of pulses from the DAQ card.
     """
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, headless=True):
         if logger is None:
             logger = logging.getLogger()
         self.logger = logger
@@ -24,15 +24,16 @@ class PulseAnalyzer():
         self.sock = self.ctx.socket(zmq.SUB)
         self.sock.connect("tcp://127.0.0.1:1234")
         self.sock.subscribe("")  # Subscribe to all topics
-        self.server = xmlrpc.client.ServerProxy("http://localhost:5556")
 
         # Setup the DAQ Card
-        self.server.setup_channel(True, True, True, True, 'threefold')
-        self.server.set_threashold(110, 110, 180, 110)
+        if headless:
+            self.server = xmlrpc.client.ServerProxy("http://localhost:5556")
+            self.server.setup_channel(True, True, True, True, 'threefold')
+            self.server.set_threashold(110, 110, 180, 110)
 
         self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.filename = self.starttime+"_P.txt"
-
+        self.headless = headless
         self.running = False
 
     # def runDaemon(self):
@@ -70,23 +71,32 @@ class PulseAnalyzer():
                     msg = self.sock.recv_string()
                     obj = jsonpickle.decode(msg)
                     if obj.type == RecordType.DATA:
-                        pe.extract(obj.payload.msg)
+                        toEmit = pe.extract(obj.payload.msg)
+                        if not self.headless and isinstance(toEmit, tuple):
+                            self.progress.emit(toEmit)
+                            self.progressBar.emit((100.*t/(meastime*60)))
                     t = time()-start_t
                     self.logger.info(
                         'Measurement progress: %f %%' % (100*t/(meastime*60)))
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
-                sleep(5)
+                #sleep(5)
                 self.running = False
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                print(f"Headless: {self.headless}")
+                if not self.headless:
+                    print("Emiting finished")
+                    self.finished.emit()
             except (KeyboardInterrupt, SystemExit):
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
-                sleep(5)
+                #sleep(5)
                 self.running = False
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                if not self.headless:
+                    self.finished.emit()
 
         elif meastime == None:
             self.logger.info(
@@ -108,7 +118,9 @@ class PulseAnalyzer():
                     msg = self.sock.recv_string()
                     obj = jsonpickle.decode(msg)
                     if obj.type == RecordType.DATA:
-                        pe.extract(obj.payload.msg)
+                        toEmit = pe.extract(obj.payload.msg)
+                        if not self.headless and isinstance(toEmit, tuple):
+                            self.progress.emit(toEmit)
 
             except (KeyboardInterrupt, SystemExit):
                 self.server.stop_reading_data()
@@ -117,3 +129,5 @@ class PulseAnalyzer():
                 self.running = False
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                if not self.headless:
+                    self.finished.emit()

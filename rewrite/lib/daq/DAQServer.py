@@ -1,4 +1,6 @@
 import logging
+
+
 from .Provider import DAQProvider
 from datetime import datetime
 from time import time, sleep
@@ -9,6 +11,7 @@ from ..common.CountRecord import CountRecord
 from ..common.TemperatureRecord import TemperatureRecord
 from ..common.PressureRecord import PressureRecord, PressureType
 from ..common.DataRecord import DataRecord
+from ..common.GPSRecord import GPSRecord
 import zmq
 import jsonpickle
 
@@ -259,7 +262,9 @@ class DAQServer(object):
     def get_gps_info(self):
         self.do('DG')
         Found = False
+        # print("before get")
         msg = self.client.get(0)
+        # print("after get")
         while not Found:
             if msg.startswith(b'Date+Time'):
                 gpsmsg = msg
@@ -277,6 +282,15 @@ class DAQServer(object):
         PPSDelay = self.client.get(0)
         FPGATime = self.client.get(0)
         ChkSumErr = self.client.get(0)
+
+
+        gpsRecord = GPSRecord(GPSDateTime,Status,PosFix,Latitude,Longitude,Altitude,NSats,PPSDelay,FPGATime,ChkSumErr)
+
+
+        rec = Record(self.package_number, RecordType.GPS,
+                        datetime.now().timestamp(), jsonpickle.encode(gpsRecord))
+        self.package_number += 1
+        self.socket.send_string(jsonpickle.encode(rec))
 
         self.logger.info(GPSDateTime)
         self.logger.info(Status)

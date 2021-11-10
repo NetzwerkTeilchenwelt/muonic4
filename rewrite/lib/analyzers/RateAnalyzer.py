@@ -16,10 +16,10 @@ import queue
 
 class RateAnalyzer():
     """
-    Class that manages the measurement of muon rate. 
+    Class that manages the measurement of muon rate.
     """
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, headless=True):
         if logger is None:
             logger = logging.getLogger()
         self.logger = logger
@@ -29,9 +29,11 @@ class RateAnalyzer():
         self.sock = self.ctx.socket(zmq.SUB)
         self.sock.connect("tcp://127.0.0.1:1234")
         self.sock.subscribe("")  # Subscribe to all topics
-        self.server = xmlrpc.client.ServerProxy("http://localhost:5556")
-        self.server.setup_channel(True, True, True, True, 'threefold')
-        self.server.set_threashold(110, 110, 180, 110)
+        self.headless = headless
+        if headless:
+            self.server = xmlrpc.client.ServerProxy("http://localhost:5556")
+            self.server.setup_channel(True, True, True, True, 'threefold')
+            self.server.set_threashold(110, 110, 180, 110)
         # self.server.get_gps_info()
         self.starttime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.filename = self.starttime+"_R.txt"
@@ -88,6 +90,11 @@ class RateAnalyzer():
                     if self.dateandtime is None:
                         self.dateandtime = datetime.now()
 
+                    if not self.headless :
+                        send = deltaRates.tolist()
+                        send.append(self.delta_time)
+                        print(f"deltaRates: {deltaRates}, self.delta_time: {self.delta_time}, send: {send}")
+                        self.progress.emit(send)
                     self.outQueue.put(
                         f"{self.dateandtime} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {self.delta_time} {self.current_pressure} {self.temperature}")
             elif obj.type == RecordType.PRESSURE and obj.payload.valid == True and obj.payload.pressure_type == PressureType.MBAR:
@@ -136,22 +143,30 @@ class RateAnalyzer():
                     if not x.isAlive():
                         x.start()
                     # self.write_rates_to_file()
+                    if not self.headless:
+                        self.progressbar.emit(100*t/(meastime*60) )
                     self.logger.info('Measurement progress: %f %%' %
                                      (100*t/(meastime*60)))
                     t += self.delta_time
-                self.stop_reading_data()
+
+                self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
                 sleep(5)
                 self.running = False
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                self.finished.emit()
+
             except (KeyboardInterrupt, AttributeError, RuntimeError, NameError, SystemExit):
+
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
                 sleep(5)
                 self.server.setRunning(False)
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                self.finished.emit()
+
 
         elif meastime == None:
             self.logger.info(
@@ -188,6 +203,8 @@ class RateAnalyzer():
                 self.server.setRunning(False)
                 self.logger.info('Measurement stopped!')
                 self.server.clear_queues()
+                self.finished.emit()
+
 
         else:
             self.logger.error(

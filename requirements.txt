@@ -16,6 +16,7 @@ jsonpickle
 lazy-object-proxy
 livereload
 MarkupSafe
+matplotlib
 mccabe
 mongoengine
 numpy
@@ -26,11 +27,13 @@ Pygments
 pylint
 pymongo
 pyparsing
+PyQt5
 pyserial
 pytz
 PyYAML
 pyzmq
 requests
+scipy
 serial
 six
 snowballstemmer

@@ -5,7 +5,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/NetzwerkTeilchenwelt/muonic4/badge.svg?branch=master)](https://coveralls.io/github/NetzwerkTeilchenwelt/muonic4?branch=master)
 
 Rewrite of the Netzwerkteilchenwelt Muonic Software.
-Sill in very early development.
 
 ### Code organization
 The source code of muonic 4 currently (!!!) lives in the "rewrite" directory. All pull requests should reference this directory.
@@ -13,10 +12,18 @@ The source code of muonic 4 currently (!!!) lives in the "rewrite" directory. Al
 ## Documentation
 More documentation can be found [here](https://muonic.readthedocs.io/en/latest/)
 
+## Docker
+Muonic provides a Docker container, which comes with all dependencies. This is the preferred method of running muonic. There also is a ```runDocker.sh``` script, which builds the Docker container - if necessary - and starts the GUI.
+
 ## Prequisites
 
 ```bash
 pip3 install -r requirements.txt
+```
+
+Please also make sure to install the pyqt packages for your distribution. For Ubuntu they can be installed via:
+```bash
+sudo apt install -y python3-pip libgl1 libglib2.0-0 python3-pyqt5 pyqt5-dev-tools qttools5-dev-tools
 ```
 
 ## Running muonic
@@ -31,6 +38,19 @@ keep this terminal open, open a second one and run:
 python3 runRates.py
 ```
 
+## GUI
+Muonic provides a GUI written in PyQt5. The GUI can be started by running:
+```bash
+python3 runGUI.py
+```
+in the rewrite directory.
+
+## Troubleshooting
+If muonic misbehaves for any reason ("Port cannot be opened", "Queue is empty"), it is a good measure to stop all running muonic instances by running:
+```bash
+killall python3
+```
+If that does not help, one can also press the "BOARD RESET" button on the DAQ card. It is important to wait for about 15 seconds after pressing the reset button, as the board needs some time to be up and running again.
 
 
 
@@ -39,15 +59,15 @@ python3 runRates.py
 - :white_check_mark: Auto-documentation via Sphinx
 - :white_check_mark: Webhook to readthedocs
 - :white_check_mark: Auto pep-8 (or other code formatter)
-- [ ] Unittests
+- :white_check_mark: Unittests
 - [ ] Webhooks to Dockerhub
 - [ ] Webhooks to pip?
-- [ ] Github CI Action or travis.ci ???
-- [ ] Code coverage
+- :white_check_mark: Github CI Action or travis.ci ???
+- :white_check_mark: Code coverage
 - :small_red_triangle: Github Superlinter (disabled for now as it is way to harsh on existing code)
 
 ## Todo for the Software
 - :white_check_mark: Port the headless version
 - :white_check_mark: Implement socket communication
 - :white_check_mark: Convert Muonic to Python3
-- [ ] Port the existing analysis' to the new version
+- :white_check_mark: Port the existing analysis' to the new version

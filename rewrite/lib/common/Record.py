@@ -11,6 +11,7 @@ class RecordType(IntEnum):
     TEMPERATURE = 2
     PRESSURE = 3
     COUNTER = 4
+    GPS = 5
 
 
 class Record(object):
@@ -22,7 +23,7 @@ class Record(object):
     :param packageNumber: A sequential number of all packages send by a DAQ server
     :param RecType: Type of the record
     :param timestamp: Unixtimestamp
-    :param payload: Payload to be send 
+    :param payload: Payload to be send
     """
 
     def __init__(self, packageNumber, RecType, timestamp, payload):
@@ -32,5 +33,6 @@ class Record(object):
         self.payload = payload
 
     def __repr__(self):
-        return f"{self.packageNumber} {self.type} {self.timestamp} {self.payload}"
+
+        return f"{self.packageNumber} {RecordType(self.type).name} {self.timestamp} {self.payload}"
     __str__ = __repr__

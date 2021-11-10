@@ -140,7 +140,7 @@ class RateAnalyzer():
                     sleep(0.5)
                     self.delta_time = time_end-time_start
                     # self.server.calculate_rates()
-                    if not x.isAlive():
+                    if not x.is_alive():
                         x.start()
                     # self.write_rates_to_file()
                     if not self.headless:

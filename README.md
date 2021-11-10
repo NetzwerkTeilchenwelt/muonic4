@@ -52,7 +52,22 @@ killall python3
 ```
 If that does not help, one can also press the "BOARD RESET" button on the DAQ card. It is important to wait for about 15 seconds after pressing the reset button, as the board needs some time to be up and running again.
 
+If you are running in docker you can kill the program by running
+```bash
+docker ps
+```
 
+This will yield an output like this:
+```bash
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS     NAMES
+ba1d3ae70903   muonic    "python3 /app/rewrit…"   13 minutes ago   Up 13 minutes             heuristic_meninsky
+```
+
+Copy the ID from the first column and run:
+```bash
+docker kill ba1d3ae70903
+```
+This kills the container.
 
 ## To do in Repo Setup
 

@@ -44,6 +44,16 @@ Muonic provides a GUI written in PyQt5. The GUI can be started by running:
 python3 runGUI.py
 ```
 in the rewrite directory.
+## Running on Mac and/or Docker
+
+Basically follow this link to setup a GUI on macOS (https://cntnr.io/running-guis-with-docker-on-mac-os-x-a14df6a76efc)[https://cntnr.io/running-guis-with-docker-on-mac-os-x-a14df6a76efc]. The steps are listed below
+
+### Install dependencies
+
+- `brew install socat xquartz`
+- Open XQuartz and in settings open the advances tab. Here allow connections from network clients.
+- `socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"\$DISPLAY\"` Run the GUI with your IP:
+- `docker run -e DISPLAY=<YOUR_IP>:0 -v /dev:/dev --privileged -it muonic muonic -G`
 
 ## Troubleshooting
 If muonic misbehaves for any reason ("Port cannot be opened", "Queue is empty"), it is a good measure to stop all running muonic instances by running:

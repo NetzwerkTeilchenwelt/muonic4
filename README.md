@@ -49,7 +49,7 @@ in the rewrite directory.
 Basically follow this link to setup a GUI on macOS (https://cntnr.io/running-guis-with-docker-on-mac-os-x-a14df6a76efc)[https://cntnr.io/running-guis-with-docker-on-mac-os-x-a14df6a76efc]. The steps are listed below
 
 ### Install dependencies
-
+- `brew install --cask docker` 
 - `brew install socat xquartz`
 - Open XQuartz and in settings open the security tab. Here allow connections from network clients.
 - `socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"\$DISPLAY\"` Run the GUI with your IP:

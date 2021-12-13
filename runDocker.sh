@@ -33,12 +33,10 @@ muonic python3 /app/rewrite/runGui.py
     ;;
   'Darwin')
     OS='Mac'
-    SOCAT=`ps aux | grep socat | grep -v grep`
-    if [ -z "$SOCAT" ]; then
-      echo "Starting socat"
-      socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\" &
-    fi
-    IP=`ipconfig getifaddr en0`
+    export IP=`ipconfig getifaddr en0`
+    export DISPLAY=$IP:0
+    export PATH=/usr/X11/bin/xhost:$PATH
+    xhost + $IP
     docker run --rm -it \
    --user=$(id -u) \
    --env="DISPLAY" \

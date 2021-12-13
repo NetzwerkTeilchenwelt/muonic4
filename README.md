@@ -15,7 +15,9 @@ More documentation can be found [here](https://muonic.readthedocs.io/en/latest/)
 ## Docker
 Muonic provides a Docker container, which comes with all dependencies. This is the preferred method of running muonic. There also is a ```runDocker.sh``` script, which builds the Docker container - if necessary - and starts the GUI.
 
-## Prequisites
+## Running without Docker
+It is possible to run muonic4 without docker, e.g. when developing. Running without docker in production however is highly discuraged. Continue at your own risk.
+### Prequisites
 
 ```bash
 pip3 install -r requirements.txt
@@ -26,7 +28,7 @@ Please also make sure to install the pyqt packages for your distribution. For Ub
 sudo apt install -y python3-pip libgl1 libglib2.0-0 python3-pyqt5 pyqt5-dev-tools qttools5-dev-tools
 ```
 
-## Running muonic
+### Running muonic
 Currently the headless (no gui) version of muonic can take rate measurements. In order to run a rate measurement attach a DAQ card, then open a terminal in the rewrite directory and run:
 ```bash
 python3 runServer.py
@@ -55,6 +57,12 @@ Basically follow this link to setup a GUI on macOS (https://affolter.net/running
 - `./runDocker.sh`
 
 ## Troubleshooting
+### macOS permissions
+If you get an error on macOS stating something about permission denied, when running the `runDocker.sh` script, please try:
+```bash
+xattr -r -d com.apple.quarantine runDocker.sh
+```
+### Empty Queue
 If muonic misbehaves for any reason ("Port cannot be opened", "Queue is empty"), it is a good measure to stop all running muonic instances by running:
 ```bash
 killall python3

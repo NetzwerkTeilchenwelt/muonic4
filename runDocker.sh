@@ -33,14 +33,14 @@ muonic python3 /app/rewrite/runGui.py
     ;;
   'Darwin')
     OS='Mac'
-    export IP=`ipconfig getifaddr en0`
+    export IP=`ipconfig getifaddr en1`
     export DISPLAY=$IP:0
     export PATH=/usr/X11/bin/xhost:$PATH
     xhost + $IP
     docker run --rm -it \
    --user=$(id -u) \
    --env="DISPLAY" \
-   -e DISPLAY=$IP:0 \
+   -e DISPLAY=$DISPLAY \
    -v /dev:/dev \
    --workdir=/app \
    --volume="$PWD":/app \

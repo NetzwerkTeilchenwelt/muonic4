@@ -1,7 +1,5 @@
 #!/bin/bash
-if [[ "$(docker images -q muonic 2> /dev/null)" == "" ]]; then
-  docker build -t muonic .
-fi
+docker pull wutzi/muonic
 
 OS="`uname`"
 case $OS in
@@ -21,7 +19,7 @@ case $OS in
    -v /var:/var \
    --privileged \
    -it \
-muonic python3 /app/rewrite/runGui.py
+wutzi/muonic python3 /app/rewrite/runGui.py
     ;;
   'FreeBSD')
     OS='FreeBSD'
@@ -53,7 +51,7 @@ muonic python3 /app/rewrite/runGui.py
    -v /var:/var \
    --privileged \
    -it \
-muonic python3 /app/rewrite/runGui.py
+wutzi/muonic python3 /app/rewrite/runGui.py
     ;;
   'SunOS')
     OS='Solaris'

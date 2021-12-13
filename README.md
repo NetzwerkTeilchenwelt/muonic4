@@ -46,14 +46,13 @@ python3 runGUI.py
 in the rewrite directory.
 ## Running on Mac and/or Docker
 
-Basically follow this link to setup a GUI on macOS (https://cntnr.io/running-guis-with-docker-on-mac-os-x-a14df6a76efc)[https://cntnr.io/running-guis-with-docker-on-mac-os-x-a14df6a76efc]. The steps are listed below
+Basically follow this link to setup a GUI on macOS (https://affolter.net/running-a-docker-container-with-gui-on-mac-os/)[https://affolter.net/running-a-docker-container-with-gui-on-mac-os/]. The steps are listed below
 
 ### Install dependencies
-- `brew install --cask docker` 
-- `brew install socat xquartz`
+- `brew install --cask docker`
+- `brew install xquartz`
 - Open XQuartz and in settings open the security tab. Here allow connections from network clients.
-- `socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"\$DISPLAY\"` Run the GUI with your IP:
-- `docker run -e DISPLAY=<YOUR_IP>:0 -v /dev:/dev --privileged -it muonic muonic -G`
+- `./runDocker.sh`
 
 ## Troubleshooting
 If muonic misbehaves for any reason ("Port cannot be opened", "Queue is empty"), it is a good measure to stop all running muonic instances by running:

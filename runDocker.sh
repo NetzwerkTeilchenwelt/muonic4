@@ -32,6 +32,9 @@ wutzi/muonic python3 /app/rewrite/runGui.py
   'Darwin')
     OS='Mac'
     export IP=`ipconfig getifaddr en1`
+    if [ -z "$IP" ]; then
+      export IP=`ipconfig getifaddr en0`
+    fi
     export DISPLAY=$IP:0
     export PATH=/usr/X11/bin/xhost:$PATH
     xhost + $IP

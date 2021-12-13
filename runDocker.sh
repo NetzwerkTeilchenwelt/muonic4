@@ -38,7 +38,7 @@ muonic python3 /app/rewrite/runGui.py
       echo "Starting socat"
       socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\" &
     fi
-    IP=`ifconfig en0 | grep inet | awk '{print $2}'`
+    IP=`ipconfig getifaddr en0`
     docker run --rm -it \
    --user=$(id -u) \
    --env="DISPLAY" \

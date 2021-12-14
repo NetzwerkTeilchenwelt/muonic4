@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  muonic:
+    image: wutzi/muonic
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /dev:/dev
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+      - /etc/sudoers.d:/etc/sudoers.d:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /var:/var
+      - /dev/tty.usbserial-0001:/dev/ttyUSB0
+    privileged: true
+    command: python3 /app/rewrite/runGui.py

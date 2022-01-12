@@ -5,9 +5,11 @@ OS="`uname`"
 case $OS in
   'Linux')
     OS='Linux'
+    xhost +
     docker run --rm -it \
    --user=$(id -u) \
    -e DISPLAY \
+   --net=host \
    --workdir=/app \
    --volume="$PWD":/app \
    --volume="/etc/group:/etc/group:ro" \

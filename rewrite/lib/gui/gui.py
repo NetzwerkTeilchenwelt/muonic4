@@ -568,16 +568,14 @@ class Ui(QtWidgets.QMainWindow):
             print("reusing old server")
 
         # info fields
-        self.start_time = datetime.datetime.utcnow().strftime("%d.%m.%Y %H:%M:%S")
+        self.start_time = datetime.datetime.utcnow()
         self.daq_time = self.OpenStudiesMeasurementTime.value()
         self.readout_time = self.OpenStudiesReadoutInterval.value()
-        print(f"DAQ time: {self.daq_time}")
         if self.daq_time == 0:
             self.show_progress = False
             self.daq_time = float(2**32)
         else:
             self.show_progress = True
-        print(f"DAQ time: {self.daq_time}")
         self.max_rate = 0
         self.updateRateInfo()
 
@@ -647,8 +645,9 @@ class Ui(QtWidgets.QMainWindow):
         self.table.setEnabled(True)
 
     def updateRateInfo(self):
-        self.lnRateStartedAt.setText(str(self.start_time))
-        self.lnRateTimeDAQ.setText(str(self.daq_time))
+        self.lnRateStartedAt.setText(str(self.start_time.strftime("%d.%m.%Y %H:%M:%S")))
+        deltaT = datetime.datetime.utcnow() - self.start_time
+        self.lnRateTimeDAQ.setText(str(deltaT))
         self.lnRateMax.setText(str(self.max_rate))
 
     def reportProgressRate(self, data):

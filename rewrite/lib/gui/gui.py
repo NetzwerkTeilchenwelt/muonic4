@@ -571,6 +571,13 @@ class Ui(QtWidgets.QMainWindow):
         self.start_time = datetime.datetime.utcnow().strftime("%d.%m.%Y %H:%M:%S")
         self.daq_time = self.OpenStudiesMeasurementTime.value()
         self.readout_time = self.OpenStudiesReadoutInterval.value()
+        print(f"DAQ time: {self.daq_time}")
+        if self.daq_time == 0:
+            self.show_progress = False
+            self.daq_time = float(2**32)
+        else:
+            self.show_progress = True
+        print(f"DAQ time: {self.daq_time}")
         self.max_rate = 0
         self.updateRateInfo()
 
@@ -594,7 +601,8 @@ class Ui(QtWidgets.QMainWindow):
 
         self.worker.progress.connect(self.reportProgressRate)
         self.worker.progressbar.connect(self.reportProgressBarRate)
-        self.pRates.setVisible(True)
+        if self.show_progress:
+            self.pRates.setVisible(True)
         self.thread.start()
         # layout.addWidget(self.scalars_monitor)
         # self.RateWidget.addWidget()

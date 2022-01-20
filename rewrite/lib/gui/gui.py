@@ -624,9 +624,9 @@ class Ui(QtWidgets.QMainWindow):
         self.table.setEnabled(False)
         self.table.setColumnWidth(0, 85)
         self.table.setColumnWidth(1, 60)
-        self.table.setHorizontalHeaderLabels(["rate [1/s]", "counts"])
+        self.table.setHorizontalHeaderLabels(["Rate [1/s]", "Counts"])
         self.table.setVerticalHeaderLabels(
-            ["channel 0", "channel 1", "channel 2", "channel 3", "trigger"]
+            ["Channel 0", "Channel 1", "Channel 2", "Channel 3", "Trigger"]
         )
         self.table.horizontalHeader().setStretchLastSection(True)
 

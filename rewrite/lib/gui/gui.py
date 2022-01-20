@@ -651,7 +651,11 @@ class Ui(QtWidgets.QMainWindow):
             self.max_rate = max_rate
         self.updateRateInfo()
         for i in range(self.SCALAR_BUF_SIZE):
-            self.scalar_fields[i].setText("%d" % data[i])
+            try:
+                current_val = int(self.scalar_fields[i].text())
+            except:
+                current_val = 0
+            self.scalar_fields[i].setText("%d" % int(current_val + data[i]))
             self.rate_fields[i].setText("%.3f" % (data[i] % data[-1]))
 
     def btnOpenStudiesRateStopClicked(self):

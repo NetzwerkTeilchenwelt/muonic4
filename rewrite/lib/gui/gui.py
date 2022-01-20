@@ -622,13 +622,18 @@ class Ui(QtWidgets.QMainWindow):
 
     def setupTable(self):
         self.table.setEnabled(False)
-        self.table.setColumnWidth(0, 85)
-        self.table.setColumnWidth(1, 60)
+        self.table.setColumnWidth(0, 320/3)
+        self.table.setColumnWidth(1, 320/3)
+        self.table.setColumnWidth(2, 320/3)
+        #self.table.setColumnWidth(1, 60)
         self.table.setHorizontalHeaderLabels(["Rate [1/s]", "Counts"])
         self.table.setVerticalHeaderLabels(
             ["Channel 0", "Channel 1", "Channel 2", "Channel 3", "Trigger"]
         )
-        self.table.horizontalHeader().setStretchLastSection(True)
+        #self.table.horizontalHeader().setStretchLastSection(True)
+        #self.table.horizontalHeader().setSectionResizeMode( 0, QtWidgets.QHeaderView.ResizeToContents)
+       # self.table.horizontalHeader().setSectionResizeMode( 1, QtWidgets.QHeaderView.ResizeToContents)
+       # self.table.horizontalHeader().setSectionResizeMode( 2, QtWidgets.QHeaderView.ResizeToContents)
 
         # table column fields
         self.rate_fields = dict()

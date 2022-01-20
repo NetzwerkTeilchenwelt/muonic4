@@ -647,7 +647,7 @@ class Ui(QtWidgets.QMainWindow):
     def updateRateInfo(self):
         self.lnRateStartedAt.setText(str(self.start_time.strftime("%d.%m.%Y %H:%M:%S")))
         deltaT = datetime.datetime.utcnow() - self.start_time
-        self.lnRateTimeDAQ.setText(str(deltaT))
+        self.lnRateTimeDAQ.setText(str(deltaT.total_seconds()))
         self.lnRateMax.setText(str(self.max_rate))
 
     def reportProgressRate(self, data):

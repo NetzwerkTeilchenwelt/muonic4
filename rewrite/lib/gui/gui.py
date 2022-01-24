@@ -1016,7 +1016,7 @@ class Ui(QtWidgets.QMainWindow):
         self.measurement_duration = datetime.timedelta()
         self.start_time = datetime.datetime.utcnow()
 
-        self.mu_file = WrappedFile(f"{self.start_time}_mu.txt")
+        self.mu_file = WrappedFile(f"{self.start_time}_D.txt")
 
 
         self.previous_coinc_time_03 = "00"

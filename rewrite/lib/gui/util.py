@@ -119,3 +119,4 @@ class WrappedFile(object):
         :returns: set of str
         """
         return WrappedFile.open_files
+

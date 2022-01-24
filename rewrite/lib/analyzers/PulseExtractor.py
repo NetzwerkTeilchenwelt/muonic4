@@ -5,9 +5,10 @@ edges of the pulses.
 """
 import datetime
 import os
-from dateutil import tz
+
 
 from ..utils.WrappedFile import WrappedFile
+from ..utils.Time import getLocalTime
 
 # for the pulses
 # 8 bits give a hex number
@@ -297,18 +298,18 @@ class PulseExtractor:
             self.last_fe = self.fe
 
             pulses = self._order_and_clean_pulses()
-            utcTime = datetime.datetime.utcnow()
+            # utcTime = datetime.datetime.utcnow()
 
-            from_zone = tz.tzutc()
-            to_zone = tz.tzlocal()
-            utc = datetime.datetime.utcnow()
+            # from_zone = tz.tzutc()
+            # to_zone = tz.tzlocal()
+            # utc = datetime.datetime.utcnow()
 
-            utc = utc.replace(tzinfo=from_zone)
+            # utc = utc.replace(tzinfo=from_zone)
 
 
 
             extracted_pulses = ( self.last_trigger_time, pulses["ch0"],
-                                pulses["ch1"], pulses["ch2"], pulses["ch3"], str(utc.astimezone(to_zone)))
+                                pulses["ch1"], pulses["ch2"], pulses["ch3"], str(getLocalTime()))
 
             if self._write_pulses:
                 self.pulse_file.write(repr(extracted_pulses) + '\n')

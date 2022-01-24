@@ -859,7 +859,7 @@ class Ui(QtWidgets.QMainWindow):
         # measurement duration and start time
         self.measurement_duration = datetime.timedelta()
         self.start_time = datetime.datetime.utcnow()
-        self.mu_file = WrappedFile(f"{self.start_time}_mu.txt")
+        self.mu_file = WrappedFile(f"{self.start_time}_V.txt")
 
         self.velocity_canvas = LifetimeCanvas(self.velocityWidget , logging.getLogger(), binning = self.binning)
         toolbar = NavigationToolbar(self.velocity_canvas, self)

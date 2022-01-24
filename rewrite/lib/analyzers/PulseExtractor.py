@@ -53,7 +53,7 @@ class PulseExtractor:
         self._write_pulses = False
 
         # start time and duration
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
         self.measurement_duration = datetime.timedelta()
 
         # TODO change to dictionaries, they might be faster
@@ -96,12 +96,12 @@ class PulseExtractor:
 
         if self.pulse_file is not None:
             if write_pulses:
-                self.start_time = datetime.datetime.utcnow()
+                self.start_time = getLocalTime()
                 self.pulse_file.open("a")
                 self.logger.debug("Starting to write pulses to %s" %
                                   repr(self.pulse_file))
             else:
-                stop_time = datetime.datetime.utcnow()
+                stop_time = getLocalTime()
 
                 # add duration
                 self.measurement_duration += stop_time - self.start_time
@@ -117,7 +117,7 @@ class PulseExtractor:
         :returns: None
         """
         if self._write_pulses:
-            stop_time = datetime.datetime.utcnow()
+            stop_time = getLocalTime()
 
             # add duration
             self.measurement_duration += stop_time - self.start_time
@@ -298,11 +298,11 @@ class PulseExtractor:
             self.last_fe = self.fe
 
             pulses = self._order_and_clean_pulses()
-            # utcTime = datetime.datetime.utcnow()
+            # utcTime = getLocalTime()
 
             # from_zone = tz.tzutc()
             # to_zone = tz.tzlocal()
-            # utc = datetime.datetime.utcnow()
+            # utc = getLocalTime()
 
             # utc = utc.replace(tzinfo=from_zone)
 

@@ -26,6 +26,7 @@ from ..daq.DAQServer import DAQServer
 from ..analyzers.RateAnalyzer import RateAnalyzer
 from .widget import RateWidget
 from .util import WrappedFile
+from ..utils.Time import getLocalTime
 from .canvases import ScalarsCanvas, MplCanvas, PulseWidthCanvas, LifetimeCanvas
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg,
@@ -568,7 +569,7 @@ class Ui(QtWidgets.QMainWindow):
             print("reusing old server")
 
         # info fields
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
         self.daq_time = self.OpenStudiesMeasurementTime.value()
         self.readout_time = self.OpenStudiesReadoutInterval.value()
         if self.daq_time == 0:
@@ -651,7 +652,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def updateRateInfo(self):
         self.lnRateStartedAt.setText(str(self.start_time.strftime("%d.%m.%Y %H:%M:%S")))
-        deltaT = datetime.datetime.utcnow() - self.start_time
+        deltaT = getLocalTime() - self.start_time
         self.lnRateTimeDAQ.setText(str(deltaT.total_seconds()))
         self.lnRateMax.setText(str(self.max_rate))
 
@@ -858,7 +859,7 @@ class Ui(QtWidgets.QMainWindow):
         self.getUpperLower()
         # measurement duration and start time
         self.measurement_duration = datetime.timedelta()
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
         self.mu_file = WrappedFile(f"{self.start_time}_V.txt")
 
         self.velocity_canvas = LifetimeCanvas(self.velocityWidget , logging.getLogger(), binning = self.binning)
@@ -871,7 +872,7 @@ class Ui(QtWidgets.QMainWindow):
         self.show()
 
         self.trigger = VelocityTrigger(logging.getLogger())
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
         self.mu_file.open("a")
         self.mu_file.write("# new velocity measurement run from: %s\n" %
                                self.start_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
@@ -911,7 +912,7 @@ class Ui(QtWidgets.QMainWindow):
         if flight_time is not None and flight_time > 0:
             self.event_data.append(flight_time)
             self.muon_counter += 1
-            self.last_event_time = datetime.datetime.utcnow()
+            self.last_event_time = getLocalTime()
             logging.getLogger().info("measured flight time %s" % flight_time)
 
     def reportProgressVelocity(self, data):
@@ -936,7 +937,7 @@ class Ui(QtWidgets.QMainWindow):
         self.VelocityProgress.setValue(progress)
 
     def velocityFinished(self):
-        stop_time = datetime.datetime.utcnow()
+        stop_time = getLocalTime()
         self.measurement_duration += stop_time - self.start_time
         self.VelocityProgress.setValue(100)
         logging.getLogger().info("Muon velocity mode now deactivated, returning to " +
@@ -1014,7 +1015,7 @@ class Ui(QtWidgets.QMainWindow):
 
          # measurement duration and start time
         self.measurement_duration = datetime.timedelta()
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
 
         self.mu_file = WrappedFile(f"{self.start_time}_D.txt")
 
@@ -1052,7 +1053,7 @@ class Ui(QtWidgets.QMainWindow):
         # so we take all pulses
         self._DAQServer.do("WC 00 0F")
 
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
         self.mu_file.open("a")
         self.mu_file.write("# new decay measurement run from: %s\n" %
                             self.start_time.strftime("%a %d %b %Y %H:%M:%S UTC"))
@@ -1096,7 +1097,7 @@ class Ui(QtWidgets.QMainWindow):
             max_double_pulse_width=self.max_double_pulse_width)
 
         if decay is not None:
-            when = datetime.datetime.utcnow()
+            when = getLocalTime()
             self.event_data.append((decay / 1000,
                                     when.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]))
             self.muon_counter += 1
@@ -1137,7 +1138,7 @@ class Ui(QtWidgets.QMainWindow):
         self.lifetimeProgress.setValue(progress)
 
     def LifetimeStop(self):
-        stop_time = datetime.datetime.utcnow()
+        stop_time = getLocalTime()
         self.measurement_duration += stop_time - self.start_time
 
         # reset coincidence times

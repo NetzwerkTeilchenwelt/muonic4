@@ -7,6 +7,7 @@ from __future__ import print_function
 import datetime
 import os
 
+
 from muonic.util import rename_muonic_file, get_hours_from_duration
 from muonic.util import WrappedFile
 
@@ -140,7 +141,7 @@ class PulseExtractor:
     def _calculate_edges(self, line, counter_diff=0):
         """
         get the leading and falling edges of the pulses
-        Use counter diff for getting pulse times in subsequent 
+        Use counter diff for getting pulse times in subsequent
         lines of the trigger flag
 
         :param line: DQ message split on whitespaces
@@ -170,8 +171,8 @@ class PulseExtractor:
 
     def _order_and_clean_pulses(self):
         """
-        Remove pulses which have a 
-        leading edge later in time than a 
+        Remove pulses which have a
+        leading edge later in time than a
         falling edge and do a bit of sorting
         Remove also single leading or falling edges
         NEW: We add virtual falling edges!

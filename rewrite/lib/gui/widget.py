@@ -3,7 +3,7 @@ import datetime
 import time
 from .util import WrappedFile
 from .canvases import ScalarsCanvas
-
+from ..utils.Time import getLocalTime
 class BaseWidget(QtWidgets.QWidget):
     """
     Base widget class
@@ -92,7 +92,7 @@ class RateWidget(BaseWidget):
 
         # measurement start and duration
         self.measurement_duration = datetime.timedelta()
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
 
         # define the begin of the time interval for the rate calculation
         self.last_query_time = 0
@@ -344,7 +344,7 @@ class RateWidget(BaseWidget):
 
         self.active(True)
 
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = getLocalTime()
 
         # self.start_button.setEnabled(False)
         # self.stop_button.setEnabled(True)
@@ -411,7 +411,7 @@ class RateWidget(BaseWidget):
 
         self.active(False)
 
-        stop_time = datetime.datetime.utcnow()
+        stop_time = getLocalTime()
 
         self.measurement_duration += stop_time - self.start_time
 
@@ -434,7 +434,7 @@ class RateWidget(BaseWidget):
         :returns: None
         """
         if self.active():
-            stop_time = datetime.datetime.utcnow()
+            stop_time = getLocalTime()
 
             self.measurement_duration += stop_time - self.start_time
 

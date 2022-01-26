@@ -140,6 +140,10 @@ class Ui(QtWidgets.QMainWindow):
         # print(f"PWD: {pathlib.Path(__file__).parent.resolve()}")
         uic.loadUi(f"{pathlib.Path(__file__).parent.resolve()}/muonic4.ui", self)
 
+        self.MainTab = self.findChild(QtWidgets.QTabWidget, "MainTab")
+        self.MainTab.setTabEnabled(3, False)
+
+
         # Get buttons for open studies
         self.btnOpenStudiesRateStart = self.findChild(
             QtWidgets.QPushButton, "btnOpenStudiesRateStart"

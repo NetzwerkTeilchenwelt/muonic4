@@ -27,7 +27,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideRight</enum>
@@ -43,7 +43,7 @@
         <item>
          <widget class="QTabWidget" name="SubTabOpenStudies">
           <property name="currentIndex">
-           <number>2</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="TabConfigOpenStudies">
            <attribute name="title">
@@ -1340,7 +1340,7 @@
       </widget>
       <widget class="QWidget" name="MainTabLifetime">
        <attribute name="title">
-        <string>Lifetime</string>
+        <string>Decay</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>

@@ -137,6 +137,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def __init__(self):
         super(Ui, self).__init__()
+        logging.getLogger('matplotlib.font_manager').disabled = True
         # print(f"PWD: {pathlib.Path(__file__).parent.resolve()}")
         uic.loadUi(f"{pathlib.Path(__file__).parent.resolve()}/muonic4.ui", self)
 

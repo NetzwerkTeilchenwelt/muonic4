@@ -61,7 +61,7 @@ class RateAnalyzer():
             self.logger.info(
                 'Starting to write data to file %s' % self.filename)
             self.outQueue.put(
-                " date | time | Rate_0 | Rate_1 | Rate_2 | Rate_3 | Rate_trigger | Counts_0 | Counts_1 | Counts_2 | Counts_3 | trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
+                "Date | Time | Rate_0 | Rate_1 | Rate_2 | Rate_3 | Rate_trigger | Counts_0 | Counts_1 | Counts_2 | Counts_3 | Trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
 
     def runDaemon(self):
         while True:

@@ -67,7 +67,7 @@ class PulseWorker(QObject):
         self._PulseAnalyzer.server = self._DAQServer
         self._PulseAnalyzer.progress = self.progress
         self._PulseAnalyzer.finished = self.finished
-        self._PulseAnalyzer.progressBar = self.progressBar
+
 
     def run(self):
         self._PulseAnalyzer.measure_pulses(meastime=self.daq_time)
@@ -166,10 +166,10 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QPushButton, "btnOpenStudiesPulseStop"
         )
 
-        self.btnOpenStudiesRateStart.clicked.connect(
-            self.btnOpenStudiesPulseStartClicked
-        )
-        self.btnOpenStudiesRateStop.clicked.connect(self.btnOpenStudiesPulseStopClicked)
+        # self.btnOpenStudiesRateStart.clicked.connect(
+        #     self.btnOpenStudiesPulseStartClicked
+        # )
+        # self.btnOpenStudiesRateStop.clicked.connect(self.btnOpenStudiesPulseStopClicked)
 
         # Get values for open studies
         self.ckOpenStudiesCH0Enabled = self.findChild(
@@ -241,8 +241,8 @@ class Ui(QtWidgets.QMainWindow):
         self.pulseWidget2 = self.findChild(QtWidgets.QWidget, "pulseWidget2")
         self.pulseWidget3 = self.findChild(QtWidgets.QWidget, "pulseWidget3")
 
-        self.pulseProgressbar = self.findChild(QtWidgets.QProgressBar, "pPulses")
-        self.pulseProgressbar.setVisible(False)
+        # self.pulseProgressbar = self.findChild(QtWidgets.QProgressBar, "pPulses")
+        # self.pulseProgressbar.setVisible(False)
 
 
         # Get values for velocity
@@ -618,6 +618,7 @@ class Ui(QtWidgets.QMainWindow):
         # self.RateWidget.calculate()
         # self.RateWidget.update()
         print("... started")
+        self.startPulesMeasurement()
 
     def reportProgressBarRate(self, p):
         self.pRates.setValue(float(p))
@@ -679,11 +680,11 @@ class Ui(QtWidgets.QMainWindow):
         self.thread.quit()
 
 
-    def btnOpenStudiesPulseStartClicked(self):
-        print("Starting")
+    def startPulesMeasurement(self):
+        print("Starting Pulses")
         self.pulses = None
-        self.pulseProgressbar.setVisible(True)
-        self.pulseProgressbar.setValue(0)
+        # self.pulseProgressbar.setVisible(True)
+        # self.pulseProgressbar.setValue(0)
         self.pulse_widths = {i: [] for i in range(4)}
         self.pulse_width_canvases = []
         self.pulse_width_toolbars = []
@@ -741,28 +742,31 @@ class Ui(QtWidgets.QMainWindow):
 
         self.show()
 
-        try:
-            self._DAQServer = DAQServer()
-        except zmq.error.ZMQError:
-            print("reusing old server")
-        self.getCoincidence()
-        self.setupChannels()
+        # try:
+        #     self._DAQServer = DAQServer()
+        # except zmq.error.ZMQError:
+        #     print("reusing old server")
+        # self.getCoincidence()
+        # self.setupChannels()
 
-        self.lastUpdate = time()
-        self.thread = QThread()
-        self.worker = PulseWorker(self._DAQServer)
-        self.daq_time = self.OpenStudiesMeasurementTime.value()
-        self.worker.daq_time = self.daq_time
-        self.worker.moveToThread(self.thread)
+        self.lastUpdatePulse = time()
+        self.threadPulse = QThread()
+        self.workerPulse = PulseWorker(self._DAQServer)
+        self.daq_timePulse = self.OpenStudiesMeasurementTime.value()
+        self.workerPulse.daq_time = self.daq_timePulse
+        self.workerPulse.moveToThread(self.threadPulse)
 
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.worker.finished.connect(self.pulseFinished)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.worker.progress.connect(self.reportProgressPulse)
-        self.worker.progressBar.connect(self.reportPulseProgressBar)
-        self.thread.start()
+        self.threadPulse.started.connect(self.workerPulse.run)
+        self.workerPulse.finished.connect(self.threadPulse.quit)
+        self.workerPulse.finished.connect(self.workerPulse.deleteLater)
+        self.workerPulse.finished.connect(self.pulseFinished)
+        self.threadPulse.finished.connect(self.threadPulse.deleteLater)
+        self.workerPulse.progress.connect(self.reportProgressPulse)
+        # self.workerPulse.progressBar.connect(self.reportPulseProgressBar)
+        self.threadPulse.start()
+
+    def btnOpenStudiesPulseStartClicked(self):
+        pass
 
     def btnOpenStudiesPulseStopClicked(self):
         self.thread.quit()
@@ -770,6 +774,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def reportProgressPulse(self, data):
         # Pulsedata: (3513.99260384, [], [(13.75, 66.25)], [], [])
+        print(f"ReportProgressPulse: {data}")
         self.pulses = data
 
         for i, channel in enumerate(self.pulses[1:]):
@@ -791,11 +796,11 @@ class Ui(QtWidgets.QMainWindow):
 
     def reportPulseProgressBar(self, value):
         print(f"Current Progress: {value}")
-        self.pulseProgressbar.setVisible(True)
-        self.pulseProgressbar.setValue(value)
+        # self.pulseProgressbar.setVisible(True)
+        # self.pulseProgressbar.setValue(value)
 
     def pulseFinished(self):
-        self.pulseProgressbar.setValue(100)
+        # self.pulseProgressbar.setValue(100)
         for i, pwc in enumerate(self.pulse_width_canvases):
             pwc.update_plot(self.pulse_widths[i])
         self.pulse_widths = {i: [] for i in range(4)}
@@ -901,6 +906,7 @@ class Ui(QtWidgets.QMainWindow):
         self.worker.progress.connect(self.reportProgressVelocity)
         self.worker.progressBar.connect(self.reportProgressBarVelocity)
         self.thread.start()
+        self.startPulesMeasurement()
 
     def btnVelocityStopClicked(self):
         self.thread.quit()
@@ -1076,6 +1082,7 @@ class Ui(QtWidgets.QMainWindow):
         self.worker.progress.connect(self.reportProgressLifetime)
         self.worker.progressBar.connect(self.reportProgressBarLifetime)
         self.thread.start()
+        self.startPulesMeasurement()
 
     def lifeteimFinished(self):
         self.LifetimeStop()

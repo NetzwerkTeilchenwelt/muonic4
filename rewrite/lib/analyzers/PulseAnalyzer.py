@@ -70,11 +70,11 @@ class PulseAnalyzer():
                 while t < (meastime*60):
                     msg = self.sock.recv_string()
                     obj = jsonpickle.decode(msg)
-                    print(f"PULSE OBJ: {obj}")
                     if obj.type == RecordType.DATA:
+                        # print(f"PULSE OBJ: {obj}")
                         toEmit = pe.extract(obj.payload.msg)
                         if not self.headless and isinstance(toEmit, tuple):
-                            print(f"Emitting: {toEmit}")
+                            # print(f"Emitting: {toEmit}")
                             self.progress.emit(toEmit)
                             # self.progressBar.emit((100.*t/(meastime*60)))
                     t = time()-start_t

@@ -778,8 +778,10 @@ class Ui(QtWidgets.QMainWindow):
         print(f"ReportProgressPulse: {data}")
         self.pulses = data
 
-        for i, channel in enumerate(self.pulses[1:]):
+        for i, channel in enumerate(self.pulses[1:-1]):
+            # print(f"Channel {i}: {channel}")
             pulse_widths = self.pulse_widths.get(i, [])
+            # print(f"Pulse widths: {pulse_widths}")
             for le, fe in channel:
                 if fe is not None:
                     pulse_widths.append(fe - le)
@@ -788,9 +790,9 @@ class Ui(QtWidgets.QMainWindow):
             self.pulse_widths[i] = pulse_widths
         if self.thread.isRunning():
             t = time()
-            dt = t - self.lastUpdate
+            dt = t - self.lastUpdatePulse
             if dt > 10:
-                self.lastUpdate = t
+                self.lastUpdatePulse = t
                 for i, pwc in enumerate(self.pulse_width_canvases):
                     pwc.update_plot(self.pulse_widths[i])
                 self.pulse_widths = {i: [] for i in range(4)}

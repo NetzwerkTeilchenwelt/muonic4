@@ -78,8 +78,8 @@ class PulseAnalyzer():
                             self.progress.emit(toEmit)
                             # self.progressBar.emit((100.*t/(meastime*60)))
                     t = time()-start_t
-                    self.logger.info(
-                        'Measurement progress: %f %%' % (100*t/(meastime*60)))
+                    # self.logger.info(
+                    #     'Measurement progress: %f %%' % (100*t/(meastime*60)))
                 self.server.stop_reading_data()
                 self.logger.info('Measurement is stopping. Please wait!')
                 #sleep(5)

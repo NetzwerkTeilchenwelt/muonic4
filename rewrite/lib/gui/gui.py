@@ -527,7 +527,7 @@ class Ui(QtWidgets.QMainWindow):
         self.DAQThread.start()
 
         #get Git Rev
-        self.gitRev = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+        #self.gitRev = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
         self.findChild(QtWidgets.QLabel, "lblGitRev").setText(f"Get Rev: {self.gitRev}")
 
 

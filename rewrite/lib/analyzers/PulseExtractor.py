@@ -310,8 +310,9 @@ class PulseExtractor:
 
             extracted_pulses = ( str(getLocalTime()), pulses["ch0"],
                                 pulses["ch1"], pulses["ch2"], pulses["ch3"])
-
+            # print(f"extracted: {extracted_pulses}")
             if self._write_pulses:
+                # print("Writing pulses to file")
                 self.pulse_file.write(repr(extracted_pulses) + '\n')
 
             # as the pulses for the last event are done,

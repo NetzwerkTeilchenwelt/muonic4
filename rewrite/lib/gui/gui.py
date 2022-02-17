@@ -14,7 +14,7 @@ import logging
 import datetime
 import jsonpickle
 import numpy as np
-from time import time
+from time import time, sleep
 import zmq
 from ..analyzers.VelocityTrigger import VelocityTrigger
 from ..analyzers.DecayTrigger import DecayTriggerThorough
@@ -26,7 +26,7 @@ from ..daq.DAQServer import DAQServer
 from ..analyzers.RateAnalyzer import RateAnalyzer
 from .widget import RateWidget
 from .util import WrappedFile
-from ..utils.Time import getLocalTime
+from ..utils.Time import getLocalTime, getCurrentTimeString
 from .canvases import ScalarsCanvas, MplCanvas, PulseWidthCanvas, LifetimeCanvas
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg,
@@ -589,25 +589,29 @@ class Ui(QtWidgets.QMainWindow):
 
         self.getCoincidence()
         self.setupChannels()
+        self._DAQServer.do("DC")
+        self._DAQServer.do("CE")
+        self._DAQServer.do("WC 03 04")
+        self._DAQServer.do("WC 02 0A")
 
-        self.thread = QThread()
+        self.threadRate = QThread()
 
-        self.worker = RateWorker(self._DAQServer)
-        self.worker.daq_time = self.daq_time
-        self.worker.readout_time = self.readout_time
-        self.worker.moveToThread(self.thread)
+        self.workerRate = RateWorker(self._DAQServer)
+        self.workerRate.daq_time = self.daq_time
+        self.workerRate.readout_time = self.readout_time
+        self.workerRate.moveToThread(self.threadRate)
 
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.worker.finished.connect(self.rateFinished)
-        self.thread.finished.connect(self.thread.deleteLater)
+        self.threadRate.started.connect(self.workerRate.run)
+        self.workerRate.finished.connect(self.threadRate.quit)
+        self.workerRate.finished.connect(self.workerRate.deleteLater)
+        self.workerRate.finished.connect(self.rateFinished)
+        self.threadRate.finished.connect(self.threadRate.deleteLater)
 
-        self.worker.progress.connect(self.reportProgressRate)
-        self.worker.progressbar.connect(self.reportProgressBarRate)
+        self.workerRate.progress.connect(self.reportProgressRate)
+        self.workerRate.progressbar.connect(self.reportProgressBarRate)
         if self.show_progress:
             self.pRates.setVisible(True)
-        self.thread.start()
+        self.threadRate.start()
         # layout.addWidget(self.scalars_monitor)
         # self.RateWidget.addWidget()
 
@@ -620,6 +624,7 @@ class Ui(QtWidgets.QMainWindow):
         # self.RateWidget.update()
         print("... started")
         self.startPulesMeasurement()
+        sleep(3)
 
     def reportProgressBarRate(self, p):
         self.pRates.setValue(float(p))
@@ -765,6 +770,7 @@ class Ui(QtWidgets.QMainWindow):
         self.workerPulse.progress.connect(self.reportProgressPulse)
         # self.workerPulse.progressBar.connect(self.reportPulseProgressBar)
         self.threadPulse.start()
+        print("Pulse thread started")
 
     def btnOpenStudiesPulseStartClicked(self):
         pass
@@ -788,7 +794,7 @@ class Ui(QtWidgets.QMainWindow):
                 else:
                     pulse_widths.append(0.0)
             self.pulse_widths[i] = pulse_widths
-        if self.thread.isRunning():
+        if self.threadPulse.isRunning():
             t = time()
             dt = t - self.lastUpdatePulse
             if dt > 10:
@@ -1030,7 +1036,7 @@ class Ui(QtWidgets.QMainWindow):
         self.measurement_duration = datetime.timedelta()
         self.start_time = getLocalTime()
 
-        self.mu_file = WrappedFile(f"{self.start_time}_D.txt")
+        self.mu_file = WrappedFile(f"{getCurrentTimeString()}_D.txt")
 
 
         self.previous_coinc_time_03 = "00"

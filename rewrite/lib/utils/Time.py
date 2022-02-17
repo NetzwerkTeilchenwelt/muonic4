@@ -10,3 +10,11 @@ def getLocalTime():
 
     utc = utc.replace(tzinfo=from_zone)
     return utc.astimezone(to_zone)
+
+def getTimeString(time):
+    return f"{time}"[:-5]
+
+def getCurrentTimeString():
+    return datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")
+    # return getTimeString(getLocalTime())

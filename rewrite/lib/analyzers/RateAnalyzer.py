@@ -8,6 +8,7 @@ from ..common.CountRecord import CountRecord
 from ..common.Record import RecordType, Record
 from ..common.PressureRecord import PressureType, PressureRecord
 from ..common.TemperatureRecord import TemperatureRecord
+from ..utils.Time import getCurrentTimeString
 from datetime import datetime
 from time import time, sleep
 import threading
@@ -96,7 +97,7 @@ class RateAnalyzer():
                         print(f"deltaRates: {deltaRates}, self.delta_time: {self.delta_time}, send: {send}")
                         self.progress.emit(send)
                     self.outQueue.put(
-                        f"{self.dateandtime} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {self.delta_time} {self.current_pressure} {self.temperature}")
+                        f"{getCurrentTimeString()} {deltaRates[0]} {deltaRates[1]} {deltaRates[2]} {deltaRates[3]} {deltaRates[4]} {curRates[0]} {curRates[1]} {curRates[2]} {curRates[3]} {curRates[4]} {self.delta_time} {self.current_pressure} {self.temperature}")
             elif obj.type == RecordType.PRESSURE and obj.payload.valid == True and obj.payload.pressure_type == PressureType.MBAR:
                 self.current_pressure = obj.payload.pressure
             elif obj.type == RecordType.TEMPERATURE and obj.payload.valid == True:

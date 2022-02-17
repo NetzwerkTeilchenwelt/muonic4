@@ -130,6 +130,25 @@ class DAQOutputWorker(QObject):
             if text != "":
                 self.progress.emit(text + '\n')
 
+class DAQOutputWriter(QObject):
+    def __init__(self, server):
+        QObject.__init__(self)
+        self._DAQServer = server
+        self.ctx  = zmq.Context()
+        self.sock = self.ctx.socket(zmq.SUB)
+        self.sock.connect("tcp://127.0.0.1:1234")
+        self.sock.subscribe("")
+        self.file = open(f"{getCurrentTimeString()}_RAW.txt", "w")
+
+    def run(self):
+        while True:
+            msg = self.sock.recv_string()
+            obj = jsonpickle.decode(msg)
+            #print(f"OBJ Type: {type(obj)}")
+            text = str(obj)
+            if text != "":
+                self.file.write(text + '\n')
+                self.file.flush()
 
 class Ui(QtWidgets.QMainWindow):
     serverTask = threading.Thread()
@@ -455,6 +474,8 @@ class Ui(QtWidgets.QMainWindow):
             QtWidgets.QPlainTextEdit, "DAQOutput"
         )
 
+        self.writeDAQOutput = self.findChild(QtWidgets.QCheckBox, "chkRawOutput")
+
         self.DAQCommand = self.findChild(
             QtWidgets.QLineEdit, "DAQCommand"
         )
@@ -506,6 +527,19 @@ class Ui(QtWidgets.QMainWindow):
         self.DAQThread.start()
         self.show()
 
+    def startOutputWrite(self):
+        if not self.writeDAQOutput.isChecked():
+           return
+
+        if hasattr(self,"DAQWriteThread"):
+            return
+        self.DAQWriteThread = QThread()
+        self.DAQOutputWriter = DAQOutputWriter(self._DAQServer)
+        self.DAQOutputWriter.moveToThread(self.DAQWriteThread)
+        self.DAQWriteThread.started.connect(self.DAQOutputWriter.run)
+        self.DAQWriteThread.start()
+
+
     def shutdownDAQServer(self):
         print("shutdown task")
         self._DAQServer.shutdown()
@@ -554,6 +588,7 @@ class Ui(QtWidgets.QMainWindow):
     def btnOpenStudiesRateStartClicked(self):
         # self._DAQServer = DAQServer()
         print("Starting...")
+
         # sc = MplCanvas(self)
         # sc.axes.plot([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
         self.scalars_monitor = ScalarsCanvas(self.RateWidget, logging.getLogger())
@@ -572,7 +607,7 @@ class Ui(QtWidgets.QMainWindow):
             self._DAQServer = DAQServer()
         except zmq.error.ZMQError:
             print("reusing old server")
-
+        self.startOutputWrite()
         # info fields
         self.start_time = getLocalTime()
         self.daq_time = self.OpenStudiesMeasurementTime.value()
@@ -752,6 +787,7 @@ class Ui(QtWidgets.QMainWindow):
         #     self._DAQServer = DAQServer()
         # except zmq.error.ZMQError:
         #     print("reusing old server")
+        self.startOutputWrite()
         # self.getCoincidence()
         # self.setupChannels()
 
@@ -900,6 +936,8 @@ class Ui(QtWidgets.QMainWindow):
             self._DAQServer = DAQServer()
         except zmq.error.ZMQError:
             print("reusing old server")
+
+        self.startOutputWrite()
         self.setupVelocityChannels()
 
         self.thread = QThread()
@@ -1060,6 +1098,7 @@ class Ui(QtWidgets.QMainWindow):
             self._DAQServer = DAQServer()
         except zmq.error.ZMQError:
             print("reusing old server")
+        self.startOutputWrite()
          # configure DAQ card with coincidence/veto settings
         self.setupLifetimeChannels()
         self._DAQServer.do("DC")

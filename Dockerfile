@@ -7,6 +7,7 @@ RUN apt update && apt dist-upgrade -y &&\
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt /app
+COPY .git /app/.git
 RUN pip3 install -r requirements.txt
 COPY rewrite/ /app/rewrite
 

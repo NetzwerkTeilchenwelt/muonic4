@@ -61,7 +61,7 @@ class RateAnalyzer():
             self.logger.info(
                 'Starting to write data to file %s' % self.filename)
             self.outQueue.put(
-                "Date | Time | Rate_0 | Rate_1 | Rate_2 | Rate_3 | Rate_trigger | Counts_0 | Counts_1 | Counts_2 | Counts_3 | Trigger | Delta_time | Pressure [mBar] | Temperature [C] \n")
+                "Date Time Rate_0 Rate_1 Rate_2 Rate_3 Rate_trigger Counts_0 Counts_1 Counts_2 Counts_3 Trigger Delta_time Pressure [mBar] Temperature [C] \n")
 
     def runDaemon(self):
         while True:
@@ -142,7 +142,7 @@ class RateAnalyzer():
                     # self.server.calculate_rates()
                     if not x.is_alive():
                         x.start()
-                    # self.write_rates_to_file()
+                    self.write_rates_to_file()
                     if not self.headless:
                         self.progressbar.emit(100*t/(meastime*60) )
                     self.logger.info('Measurement progress: %f %%' %

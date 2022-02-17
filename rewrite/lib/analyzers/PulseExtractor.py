@@ -308,8 +308,8 @@ class PulseExtractor:
 
 
 
-            extracted_pulses = ( self.last_trigger_time, pulses["ch0"],
-                                pulses["ch1"], pulses["ch2"], pulses["ch3"], str(getLocalTime()))
+            extracted_pulses = ( str(getLocalTime()), pulses["ch0"],
+                                pulses["ch1"], pulses["ch2"], pulses["ch3"])
 
             if self._write_pulses:
                 self.pulse_file.write(repr(extracted_pulses) + '\n')

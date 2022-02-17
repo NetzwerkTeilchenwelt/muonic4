@@ -778,7 +778,7 @@ class Ui(QtWidgets.QMainWindow):
         print(f"ReportProgressPulse: {data}")
         self.pulses = data
 
-        for i, channel in enumerate(self.pulses[1:-1]):
+        for i, channel in enumerate(self.pulses[1:]):
             # print(f"Channel {i}: {channel}")
             pulse_widths = self.pulse_widths.get(i, [])
             # print(f"Pulse widths: {pulse_widths}")

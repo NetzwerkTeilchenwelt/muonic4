@@ -363,15 +363,17 @@ class BaseHistogramCanvas(BasePlotCanvas):
 
         # try to add errorbars
         bincenters = (self.binning[1:] + self.binning[:-1]) / 2.0
+        binwidth = (self.xmax - self.xmin) / (self.binning[1] - self.binning[0])
         for i, height in enumerate(self.heights):
             self.ax.errorbar(bincenters[i], height, yerr=np.sqrt(height), color="b")
+            self.ax.bar(bincenters[i], height, width=3.4,  color='skyblue')
 
         # some beautification
         self.ax.grid()
 
         # we now have to pass our new patches
         # to the figure we created..
-        self.ax.patches = self.hist_patches
+        #self.ax.patches = self.hist_patches
         self.fig.canvas.draw()
 
     def show_fit(

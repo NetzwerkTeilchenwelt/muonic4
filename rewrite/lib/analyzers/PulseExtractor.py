@@ -242,7 +242,10 @@ class PulseExtractor:
         if len(line) < 10:
             return
         one_pps = int(line[9], 16)
-        trigger_count = int(line[0], 16)
+        try:
+            trigger_count = int(line[0], 16)
+        except:
+            pass
         time = line[10]
 
         # correct for trigger count rollover

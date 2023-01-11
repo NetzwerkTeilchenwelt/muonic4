@@ -13,16 +13,17 @@ The source code of muonic 4 currently (!!!) lives in the "rewrite" directory. Al
 More documentation can be found [here](https://muonic.readthedocs.io/en/latest/)
 
 ## Permissions
-To access the DAQ-card (/dev/ttyUSB0), the permissions have to be set correctly. Usually,
-it's enough to ensure the user is in the group dialout (edit /etc/group). 
+To access the DAQ-card (```/dev/ttyUSB0```), the permissions have to be set correctly. Usually,
+it's enough to ensure the user is in the group dialout (edit ```/etc/group```). 
 
 ## Docker
 Muonic provides a Docker container, which comes with all dependencies. This is the preferred method of running muonic. 
 You might need to install docker on the system beforehand:
-'''bash
+```bash
 sudo apt-get install docker.io
-'''
-Ensure the user is in the group 'docker' (edit /etc/group and re-login).
+```
+
+Ensure the user is in the group 'docker' (edit ```/etc/group``` and re-login).
 There is a ```runDocker.sh``` script, which builds the Docker container - if necessary - and starts the GUI.
 
 ## Running without Docker

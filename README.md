@@ -12,11 +12,23 @@ The source code of muonic 4 currently (!!!) lives in the "rewrite" directory. Al
 ## Documentation
 More documentation can be found [here](https://muonic.readthedocs.io/en/latest/)
 
+## Permissions
+To access the DAQ-card (/dev/ttyUSB0), the permissions have to be set correctly. Usually,
+it's enough to ensure the user is in the group dialout (edit /etc/group). 
+
 ## Docker
-Muonic provides a Docker container, which comes with all dependencies. This is the preferred method of running muonic. There also is a ```runDocker.sh``` script, which builds the Docker container - if necessary - and starts the GUI.
+Muonic provides a Docker container, which comes with all dependencies. This is the preferred method of running muonic. 
+You might need to install docker on the system beforehand:
+'''bash
+sudo apt-get install docker.io
+'''
+Ensure the user is in the group 'docker' (edit /etc/group and re-login).
+There is a ```runDocker.sh``` script, which builds the Docker container - if necessary - and starts the GUI.
 
 ## Running without Docker
-It is possible to run muonic4 without docker, e.g. when developing. Running without docker in production however is highly discuraged. Continue at your own risk.
+It is possible to run muonic4 without docker. On current systems it won't work, though. 
+Running without docker in production however is highly discuraged. 
+Continue at your own risk.
 ### Prequisites
 
 ```bash
@@ -46,6 +58,7 @@ Muonic provides a GUI written in PyQt5. The GUI can be started by running:
 python3 runGUI.py
 ```
 in the rewrite directory.
+
 ## Running on Mac and/or Docker
 
 Basically follow this link to setup a GUI on macOS (https://affolter.net/running-a-docker-container-with-gui-on-mac-os/)[https://affolter.net/running-a-docker-container-with-gui-on-mac-os/]. The steps are listed below
